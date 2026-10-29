@@ -15,6 +15,59 @@ Open source. Built with Claude Code. One button to undo.
 
 </div>
 
+> [!NOTE]
+> **This is a fork:** [simbasjungles/free-my-tv](https://github.com/simbasjungles/free-my-tv) with a living,
+> illustrated sky and a few extras, made for a TCL Google TV (Android 12). Everything below the fork's section is
+> the original README and still applies. The data behind these changes (apps, memory, frame times) is analyzed in
+> [tv-cleaner-analysis](https://github.com/CaueFabrizioBS/tv-cleaner-analysis).
+
+## What this fork adds
+
+<p align="center">
+<img src=".github/fork/music-day.webp" width="420" alt="By day, with music playing, the hiker leans on the tower's rail and nods his head">
+<img src=".github/fork/music-night.webp" width="420" alt="At night, with music playing, the cabin's windows blink in party colors">
+</p>
+
+- **An illustrated forest that follows the clock.** Six scenes (deep night, night, sunrise, morning, midday,
+  sunset), cross-faded, with clouds drifting by day, birds, and twinkling stars at night.
+- **Real weather.** Every 15 minutes from [Open-Meteo](https://open-meteo.com/): grey clouds when the sky is 75%
+  covered, and rain in three layers when it rains. Each scene keeps its own colors.
+- **A lookout tower with someone living in it.** He drinks hot chocolate at sunrise, reads in the morning, goes
+  hiking at midday, watches the sunset (now and then with his back to us), looks through binoculars when it's cloudy,
+  pulls his hood up in the rain, and sleeps or cooks at night.
+- **It reacts to music.** While a music app plays, by day he puts on headphones and nods along; at night the cabin's
+  windows blink in party colors that move from window to window.
+- **What's playing,** as a glass card next to the round buttons, gone 5 seconds after the music stops. One music app
+  at a time, and opening a video app pauses the music.
+- **A cozy night:** from 10 pm the home screen turns warmer and about 20% darker, slowly.
+- **A "video store" shelf:** six titles per tab, the open one with its wide photo and logo, the others as spines.
+  Plus a Games tab (Netflix games played with the phone) and picks that can open in [Nuvio](https://github.com/NuvioMedia/NuvioTV).
+
+<p align="center"><img src=".github/fork/states-sunset.jpg" width="640" alt="The sunset scene and every state of the tower"></p>
+
+**Light on the TV's chip:** the rain is a ready-made texture that slides, and the sky holds still while the titles
+move. Measured on the TV with rain while switching titles: no janky frames, about 10 ms per frame (it was 39% janky
+and 73 ms before).
+
+### Make the art your own
+
+The scenes are in `tools/sky_src/<slot>.jpg` (1920x1080, 0 deep night, 4 night, 5 sunrise, 1 morning, 2 midday,
+3 sunset). After swapping one, rebuild the variants, layers, weather deck and tower, in this order:
+
+```bash
+python tools/sky_variants.py && python tools/sky_layers.py && python tools/sky_deck.py && python tools/tower.py && ./build.sh
+```
+
+To preview a scene on the TV: `adb shell setprop debug.freemytv.slot 3` (also `debug.freemytv.weather 0|1|2` and
+`debug.freemytv.music 1`; set each back to `""`).
+
+### Your own picks, games and shelf
+
+`examples/` has a `favorites.json` (the shows and movies that guide the picks), a `games.json` (the Netflix games)
+and a `shelf.txt` (the apps on the shelf, in order). Copy any of them to `app/assets/` and edit before building.
+Without them the app falls back to the original behavior.
+
+
 ## What you get
 
 - **No ads.** No sponsored rows, banners or autoplaying promos. Not one.
@@ -281,6 +334,7 @@ No accounts, no analytics, no tracking. The app talks to TMDB, Open-Meteo (with 
 
 ## Credits
 
+- This fork's sky, tower and music scenes: [@CaueFabrizioBS](https://github.com/CaueFabrizioBS), on top of the original by [@simbasjungles](https://github.com/simbasjungles).
 - Built with [Claude Code](https://claude.com/claude-code).
 - The LG version builds on what [@danielthejoker18](https://github.com/danielthejoker18) found in [FreeMyTvWebOS](https://github.com/danielthejoker18/FreeMyTvWebOS) (MIT): installing through Developer Mode and opening apps through the TV's service bus.
 - On Samsung TVs it installs with [TizenBrew Installer](https://github.com/reisxd/TizenBrewInstaller) by [@reisxd](https://github.com/reisxd).

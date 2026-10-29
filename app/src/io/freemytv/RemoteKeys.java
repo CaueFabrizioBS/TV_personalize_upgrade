@@ -92,6 +92,7 @@ final class RemoteKeys {
                     : launchIntent(c.getPackageManager(), pkg);
             if (pkg.equals(Prefs.ALL_APPS)) intent.putExtra(HomeActivity.EXTRA_ALL_APPS, true);
             AppLog.w("remote key " + e.getKeyCode() + " -> " + pkg + (intent == null ? " (not installed)" : ""));
+            if (intent != null && NowPlaying.VIDEO.contains(pkg)) NowPlaying.pauseMusic(c, pkg);   // the music stops for a film
             if (intent != null) c.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         }
         return true;

@@ -104,6 +104,12 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     private final HomeData data;
     private final Recs recs;
     private final NowPlaying.Watch playing;
+    // The song a music app plays (YouTube Music, Spotify, Deezer), small in the top right corner.
+    private final NowPlaying.Music music;
+    private android.text.TextPaint musicTitle, musicArtist;
+    private final Paint musicImage = new Paint(Paint.FILTER_BITMAP_FLAG), musicFill = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final android.graphics.Path musicClip = new android.graphics.Path();
+    private final RectF musicArt = new RectF(), musicBar = new RectF();
     private final TextPaint fit = new TextPaint();
     private String playingCorner, playingBottom;
     private float playingCornerWidth, playingBottomWidth, cornerCap, bottomCap, cornerBase;
@@ -118,13 +124,20 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     private final Matrix matrix = new Matrix();
     private final float[] placeA = new float[3], placeB = new float[3];
     private final Paint photoPaint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
-    private final Paint black = new Paint();
+    private final Paint black = new Paint(), skyVeil = new Paint();
     private final Paint shadowPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
     private final Paint glassPaint = new Paint();
     private final Set<String> failed = new HashSet<>();     // Recs.key: a movie and a series can have the same ID
     private RuntimeShader glassShader;
     private boolean running, dirty = true, chromeDirty = true;
     private boolean fallback;       // the aurora with the clock (no photos)
+    /**
+     * The home screen's sky (SkyScene: drifting clouds and birds by day, turning stars at night) with the big clock,
+     * date and weather, in place of the picks' photos.
+     */
+    private static final boolean SKY = true;
+    private SkyScene sky;
+    private int skySlot = -1;
     private boolean decoding;
     private int generation, slides;
     private Slide current, incoming, prepared;
@@ -161,6 +174,10 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
             fitPlaying();
             onData();
         });
+        music = new NowPlaying.Music(c, () -> {
+            SkyScene.music = musicPlaying();   // the tower joins in
+            invalidate();
+        });
         Shaders.dream(scene.palette);
         scene.setMotion(0.4f, 0.32f);
         scene.applyPalette();
@@ -173,6 +190,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
             glassShader = null;
         }
         black.setColor(0xFF000000);
+        skyVeil.setColor(0x38000000);
         shadowPaint.setColor(0xFF000000);
     }
 
@@ -183,7 +201,8 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         startedAt = clock();
         lastFrame = 0;
         failed.clear();
-        fallback = photos().isEmpty();
+        fallback = SKY || photos().isEmpty();
+        if (SKY) loadSky();
         data.addListener(this);
         recs.addListener(this);
         data.refreshIfStale();
@@ -193,6 +212,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         prepareNext();
         handler.postDelayed(tick, 60_000);
         playing.start();
+        music.start();
         Choreographer.getInstance().postFrameCallback(this);
         invalidate();
     }
@@ -205,6 +225,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         Choreographer.getInstance().removeFrameCallback(this);
         handler.removeCallbacks(tick);
         playing.stop();
+        music.stop();
         data.removeListener(this);
         recs.removeListener(this);
         // The photos stay in GPU memory until the garbage collector runs: release them now (after the last frame).
@@ -216,6 +237,12 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         }
         if (!gone.isEmpty()) handler.postDelayed(() -> { for (Bitmap b : gone) b.recycle(); }, 1000);
         current = incoming = prepared = null;
+        if (sky != null) {
+            final SkyScene old = sky;
+            handler.postDelayed(old::release, 1000);
+            sky = null;
+        }
+        skySlot = -1;
         glass = null;
         slides = 0;
         glassFor = "";
@@ -250,10 +277,14 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         clockPaint.setTextAlign(Paint.Align.CENTER);
         clockPaint.setLetterSpacing(-0.01f);
         weatherPaint = Ui.numbers(Ui.medium, 30 * k, 0xC7FFFFFF);
-        weatherDim = Ui.numbers(Ui.regular, 28 * k, 0x80FFFFFF);
+        weatherDim = Ui.numbers(Ui.regular, 28 * k, SKY ? 0xB3FFFFFF : 0x80FFFFFF);
         quotePaint = Ui.numbers(Ui.medium, 24 * k, 0x99FFFFFF);
         stalePaint = Ui.text(Ui.regular, 20 * k, 0x59FFFFFF);
         stalePaint.setTextAlign(Paint.Align.CENTER);
+        musicTitle = new android.text.TextPaint(Ui.text(Ui.semibold, 27 * k, 0xFFFFFFFF));
+        musicArtist = new android.text.TextPaint(Ui.text(Ui.regular, 23 * k, 0xC7FFFFFF));
+        for (Paint p : new Paint[] {musicTitle, musicArtist}) p.setShadowLayer(16 * k, 0, 2 * k, 0x66000000);
+        if (SKY) for (Paint p : new Paint[] {datePaint, clockPaint, weatherPaint, weatherDim, quotePaint}) p.setShadowLayer(22 * k, 0, 2 * k, 0x59000000);
         // With photos: the corner (date, clock, prices) and the caption.
         cornerDate = Ui.numbers(Ui.semibold, 30 * k, 0xEBFFFFFF);
         cornerQuote = Ui.numbers(Ui.regular, 23 * k, 0xC7FFFFFF);
@@ -285,8 +316,39 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         return Photos.on(getContext()) ? Photos.picks(getContext()) : recs.showcase();
     }
 
+    /** The sky for this part of the day, loaded in the background, then shown at once (or after the aurora). */
+    private void loadSky() {
+        final int want = HomeData.skySlot(System.currentTimeMillis());
+        if (!running || want == skySlot) return;
+        skySlot = want;
+        final int gen = generation;
+        worker.execute(() -> {
+            SkyScene s;
+            try {
+                s = SkyScene.load(getContext(), want);
+            } catch (java.io.IOException | RuntimeException | OutOfMemoryError e) {
+                AppLog.w("dream sky " + want + ": " + e);
+                return;
+            }
+            handler.post(() -> {
+                if (gen != generation || !running) {
+                    s.release();
+                    return;
+                }
+                final SkyScene old = sky;
+                sky = s;
+                if (old != null) handler.postDelayed(old::release, 1000);
+                invalidate();
+            });
+        });
+    }
+
     /** Loads the next photo in the background (one at a time); once ready, it comes in at the right moment. */
     private void prepareNext() {
+        if (SKY) {
+            loadSky();   // the part of the day may have changed (checked every minute)
+            return;
+        }
         if (!running || decoding || prepared != null) return;
         List<Recs.Pick> list = photos();
         if (list.isEmpty()) return;
@@ -805,7 +867,12 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
             lastSky = up;
             scene.advance(timeOffset + t);
         }
-        scene.drawBackground(canvas);
+        if (sky != null) {
+            sky.draw(canvas, w, h, System.currentTimeMillis(), 1, null, SkyScene.weatherKind(data.weather));
+            canvas.drawRect(0, 0, w, h, skyVeil);   // the white clock reads over the day's light blue too
+        } else {
+            scene.drawBackground(canvas);
+        }
         if (dirty) {
             Canvas rc = content.beginRecording(w, h);
             try {
@@ -825,12 +892,63 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
             float bars = NowPlaying.barsWidth(bottomCap) + bottomCap * 0.6f;
             drawBars(canvas, w / 2f - (bars + playingBottomWidth) / 2 + dx, h - 92 * k + dy, bottomCap, quotePaint.getColor(), alpha);
         }
+        drawMusic(canvas, alpha);
+    }
+
+    /**
+     * The song playing, small in the top right corner, with no glass: the cover, then left of it the title and the
+     * artist right-aligned, level bars (bouncing while it plays) and a thin line for how far into the song it is.
+     */
+    private boolean musicPlaying() {
+        return music.playing;
+    }
+
+    private void drawMusic(Canvas c, float alpha) {
+        if (!music.showing || musicTitle == null) return;
+        float right = 1840 * k, top = 52 * k, side = 76 * k;
+        musicArt.set(right - side, top, right, top + side);
+        int a = Math.round(255 * alpha);
+        if (music.art != null && !music.art.isRecycled()) {
+            musicClip.reset();
+            musicClip.addRoundRect(musicArt, 12 * k, 12 * k, android.graphics.Path.Direction.CW);
+            c.save();
+            c.clipPath(musicClip);
+            musicImage.setAlpha(a);
+            c.drawBitmap(music.art, null, musicArt, musicImage);
+            c.restore();
+        } else {
+            musicFill.setColor(Ui.alpha(0x33FFFFFF, alpha));
+            c.drawRoundRect(musicArt, 12 * k, 12 * k, musicFill);
+            Symbols.draw(getContext(), c, "speaker", musicArt.centerX(), musicArt.centerY(), 34 * k, Ui.alpha(0xE6FFFFFF, alpha));
+        }
+        float textRight = musicArt.left - 18 * k, room = 560 * k;
+        String t = TextUtils.ellipsize(music.title, musicTitle, room, TextUtils.TruncateAt.END).toString();
+        String ar = music.artist == null ? "" : TextUtils.ellipsize(music.artist, musicArtist, room, TextUtils.TruncateAt.END).toString();
+        float titleBase = top + 30 * k, tw = musicTitle.measureText(t);
+        musicTitle.setAlpha(a);
+        musicArtist.setAlpha(Math.round(0xC7 * alpha));
+        c.drawText(t, textRight - tw, titleBase, musicTitle);
+        c.drawText(ar, textRight - musicArtist.measureText(ar), titleBase + 30 * k, musicArtist);
+        float cap = 15 * k;
+        barPaint.setColor(Ui.alpha(0xE6FFFFFF, alpha));
+        NowPlaying.drawBars(c, textRight - tw - NowPlaying.barsWidth(cap) - 12 * k, titleBase, cap, barPaint, music.playing, barRect);
+        if (music.duration > 0) {
+            float y = top + side - 6 * k, f = Ui.clamp(music.position() / (float) music.duration);
+            float left = textRight - Math.max(tw, musicArtist.measureText(ar));
+            musicFill.setColor(Ui.alpha(0x40FFFFFF, alpha));
+            musicBar.set(left, y, textRight, y + 4 * k);
+            c.drawRoundRect(musicBar, 2 * k, 2 * k, musicFill);
+            musicFill.setColor(Ui.alpha(0xF2FFFFFF, alpha));
+            musicBar.set(left, y, left + (textRight - left) * f, y + 4 * k);
+            c.drawRoundRect(musicBar, 2 * k, 2 * k, musicFill);
+        }
     }
 
     private void drawContent(Canvas c) {
         float cx = w / 2f;
         float clockCap = Ui.cap(clockPaint);
-        float clockBase = h * 0.5f + clockCap / 2 - 10 * k;
+        // Over the sky, higher: the weather under the clock stays above the white cloud bank.
+        float clockBase = h * (SKY ? 0.38f : 0.5f) + clockCap / 2 - 10 * k;
         c.drawText(date, cx, clockBase - clockCap - 34 * k, datePaint);
         c.drawText(clock, cx, clockBase, clockPaint);
 

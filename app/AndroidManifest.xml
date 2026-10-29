@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="io.freemytv"
     android:versionCode="3"
     android:versionName="1.2">
@@ -15,6 +16,9 @@
     <!-- The sleep timer on time: from Android 12, windows under 10 minutes stretch to 10. No prompt for either. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Which icon opened YouTube (YouTube Music's shortcut or YouTube's own), for the music widget; allowed through
+         ADB (appops GET_USAGE_STATS), as Android TV has no screen for it. -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
 
     <!-- Android 11+: without this list the app can't "see" the other apps (getLeanbackLaunchIntentForPackage
          returns null). The shelf and streaming apps, the live TV apps and, through the <intent>, every TV app
@@ -63,6 +67,7 @@
         <package android:name="com.amazon.tv.livetv" />
         <package android:name="com.amazon.tv.inputpreference.service" />
         <package android:name="com.amazon.mediatek.livetv" />
+        <package android:name="com.nuvio.tv" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
@@ -140,6 +145,17 @@
             android:launchMode="singleTask"
             android:taskAffinity="io.freemytv.settings"
             android:excludeFromRecents="true"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode|density|fontScale|locale|layoutDirection"
+            android:theme="@style/FreeMyTV.Home" />
+
+        <!-- The screensaver while music plays on the home screen (MusicSaver): an activity, so the TV stays on. -->
+        <activity
+            android:name=".MusicSaver"
+            android:process=":home"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
             android:screenOrientation="landscape"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode|density|fontScale|locale|layoutDirection"
             android:theme="@style/FreeMyTV.Home" />

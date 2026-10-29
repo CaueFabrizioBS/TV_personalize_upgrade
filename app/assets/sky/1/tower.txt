@@ -1,0 +1,9 @@
+front tower_front.png 1640 690
+antenna 1784.5 794.5 1785.9 730.7 42352C 1.5
+tower reading tower_reading.png 1640 690
+tower rain tower_rain.png 1640 690
+tower binoculars tower_binoculars.png 1640 690
+tower music tower_music.png 1640 690
+head music tower_music_head.png 1692 835 1707.8 856.0
+tower music_rain tower_music_rain.png 1640 690
+head music_rain tower_music_rain_head.png 1692 834 1707.8 856.0

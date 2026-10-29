@@ -1,0 +1,12 @@
+front tower_front.png 1640 690
+antenna 1784.5 794.5 1785.9 730.7 050C26 1.5
+tower off tower_off.png 1640 690
+tower party tower_party.png 1640 690
+pane 1841.2 828.6 1866.4 876.8
+glow tower_glow0.png 1819 807
+pane 1728.1 829.7 1760.0 877.7
+glow tower_glow1.png 1706 808
+pane 1762.6 829.7 1794.5 877.7
+glow tower_glow2.png 1740 808
+pane 1797.1 829.7 1829.0 877.7
+glow tower_glow3.png 1775 808

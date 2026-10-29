@@ -1,0 +1,4 @@
+fg 535
+cloud c0.png -83 0
+cloud c1.png 1561 367
+cloud c2.png 528 189

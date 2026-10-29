@@ -200,10 +200,27 @@ final class HomeApps {
         return null;
     }
 
+    private static byte[] readAll(java.io.InputStream in) throws java.io.IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[1024];
+        for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+        return out.toByteArray();
+    }
+
     /** The shelf's packages in order: the user's list (Settings > Shelf), or the built-in one. */
     static List<String> shelfPackages(Context c) {
         List<String> custom = Prefs.shelf();
         if (custom != null) return custom;
+        // This TV's own first shelf (app/assets/shelf.txt), saved as the user's list so Settings > Shelf shows it.
+        try (java.io.InputStream in = c.getAssets().open("shelf.txt")) {
+            List<String> mine = new ArrayList<>();
+            for (String p : new String(readAll(in), "UTF-8").trim().split(",")) if (!p.trim().isEmpty()) mine.add(p.trim());
+            if (!mine.isEmpty()) {
+                Prefs.setShelf(mine);
+                return mine;
+            }
+        } catch (java.io.IOException ignored) {
+        }
         List<String> out = new ArrayList<>();
         Set<String> keys = new HashSet<>();
         PackageManager pm = c.getPackageManager();
@@ -541,7 +558,16 @@ final class HomeApps {
                 intent = launchIntent(a.getPackageManager(), it.pkg);
                 plain = intent;
                 if (plain != null) plain.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                if (intent != null && it.uri != null) {
+                if (intent != null && it.uri != null && it.uri.startsWith("intent:")) {
+                    // An app's own screen with its extras (Nuvio's title page: Recs.NUVIO), only inside that app.
+                    try {
+                        Intent own = Intent.parseUri(it.uri, Intent.URI_INTENT_SCHEME);
+                        own.setSelector(null);
+                        if (own.getComponent() != null && it.pkg.equals(own.getComponent().getPackageName())) intent = own;
+                    } catch (java.net.URISyntaxException e) {
+                        AppLog.w("couldn't read the link for " + it.label + ": " + e.getMessage());
+                    }
+                } else if (intent != null && it.uri != null) {
                     intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(it.uri)).addCategory(Intent.CATEGORY_BROWSABLE).setPackage(it.pkg);
                 }
                 break;
@@ -566,6 +592,7 @@ final class HomeApps {
                 return false;
         }
         if (intent == null) return false;
+        if (it.pkg != null && NowPlaying.VIDEO.contains(it.pkg)) NowPlaying.pauseMusic(a, it.pkg);   // the music stops for a film
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         try {
             a.startActivity(intent, options);

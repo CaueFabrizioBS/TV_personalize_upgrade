@@ -74,7 +74,7 @@ final class HomeMode {
     static final String[] DEBLOAT = {
         "com.google.android.play.games", "com.google.android.youtube.tvmusic",        // Play Games, YouTube Music
         // TCL
-        "com.tcl.magiconnectfree", "com.tcl.miracast",                                // screen mirroring apps
+        "com.tcl.magiconnectfree",                                                    // screen mirroring app (Miracast kept on)
         "com.tcl.waterfall.overseas", "com.tcl.channelplus",                          // TCL Channel and its Live TV
         "com.tcl.messagebox", "com.tcl.usercenter",                                   // TCL messages and account
         "com.tcl.exhibit", "com.tcl.esticker", "com.tcl.hotelmenu",                   // store demo, hotel menu

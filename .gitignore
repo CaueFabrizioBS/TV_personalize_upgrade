@@ -17,3 +17,9 @@ __pycache__/
 # macOS
 .DS_Store
 tools/.i18n-cache.json
+
+# This TV's own picks, games and shelf (copy the ones in examples/ to app/assets/ to use them)
+app/assets/favorites.json
+app/assets/games.json
+app/assets/games/
+app/assets/shelf.txt

@@ -22,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
@@ -45,8 +46,9 @@ final class HomeData {
         return CURRENCY.equals("USD") || inDollars ? "USDT" : CURRENCY;
     }
     // Both forecasts in one answer, the next 48 hours and today plus 5 days: Home Settings → Forecast switches without
-    // asking again, and offline too.
-    private static final String WEATHER_QUERY = "&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,weather_code"
+    // asking again, and offline too. Now also the rain falling and how much of the sky is covered (the background's
+    // weather, SkyScene.weatherKind).
+    private static final String WEATHER_QUERY = "&current=temperature_2m,weather_code,is_day,precipitation,cloud_cover&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,weather_code"
             + "&hourly=temperature_2m,weather_code,is_day&timezone=auto&forecast_days=6&forecast_hours=48";
 
     private static String weatherPlace() {
@@ -56,7 +58,7 @@ final class HomeData {
     private static String weatherUrl() {
         return "https://api.open-meteo.com/v1/forecast?latitude=" + Prefs.latitude() + "&longitude=" + Prefs.longitude() + WEATHER_QUERY;
     }
-    private static final long PRICES_EVERY = 5 * 60_000L, WEATHER_EVERY = 30 * 60_000L;
+    private static final long PRICES_EVERY = 5 * 60_000L, WEATHER_EVERY = 15 * 60_000L;
     interface Listener { void onData(); }
 
     /** BTC, ETH and SOL; in Brazilian reais also the dollar (USDT/BRL), which Binance doesn't list for most currencies. */
@@ -126,6 +128,7 @@ final class HomeData {
         double temp = Double.NaN, max = Double.NaN, min = Double.NaN;
         int code = -1;
         boolean isDay = true;
+        double rain = Double.NaN, clouds = Double.NaN;   // now: mm in the last 15 minutes, % of the sky covered
         long sunrise, sunset;   // today's, in epoch ms
         // Next hours (starting at the next full hour): time, temperature, code and day/night.
         final List<Long> hours = new ArrayList<>();
@@ -294,6 +297,8 @@ final class HomeData {
         w.temp = current.getDouble("temperature_2m");
         w.code = current.getInt("weather_code");
         w.isDay = current.optInt("is_day", 1) == 1;
+        w.rain = current.optDouble("precipitation", Double.NaN);
+        w.clouds = current.optDouble("cloud_cover", Double.NaN);
         JSONObject daily = o.getJSONObject("daily");
         w.max = daily.getJSONArray("temperature_2m_max").getDouble(0);
         w.min = daily.getJSONArray("temperature_2m_min").getDouble(0);
@@ -378,8 +383,8 @@ final class HomeData {
     }
 
     /**
-     * Night at your location: from sunset to sunrise (like Apple's "Automatic" appearance: the light design darkens).
-     * Uses the last weather fetched (it moves ~1 min a day); without data, 6:00 and 18:00.
+     * The night look (white text) all day with "auto": the background is a photo for each part of the day (skySlot),
+     * under a dark veil, and white reads on all of them. Sunrise and sunset stay in the signature for SleepOverlay.
      */
     boolean isNight(long now) {
         return isNight(Prefs.theme(), now, weather.sunrise, weather.sunset);
@@ -388,11 +393,62 @@ final class HomeData {
     /** The same from what it depends on (SleepOverlay gets these in its Intent). */
     static boolean isNight(String theme, long now, long sunrise, long sunset) {
         if (theme.equals("dark")) return true;
-        if (theme.equals("light")) return false;
-        long t = Shaders.timeOfDay(now, 0);
-        long rise = Shaders.timeOfDay(sunrise, 6 * 60 * 60_000L);
-        long set = Shaders.timeOfDay(sunset, 18 * 60 * 60_000L);
-        return t < rise || t >= set;
+        return !theme.equals("light");
+    }
+
+    /**
+     * The background photo (app/assets/sky/<slot>/): 0 deep night 0:00–2:59 (darker), 4 night 3:00–4:59 and
+     * 19:31–23:59, 5 sunrise 5:00–6:59, 1 morning 7:00–10:59, 2 day 11:00–16:30, 3 evening 16:31–19:30.
+     */
+    static int minutesOfDay(long now) {
+        return (int) (Shaders.timeOfDay(now, 0) / 60_000);
+    }
+
+    static int skySlot(long now) {
+        long m = Shaders.timeOfDay(now, 0) / 60_000;
+        if (m < 3 * 60) return 0;
+        if (m < 5 * 60) return 4;
+        if (m < 7 * 60) return 5;
+        if (m < 11 * 60) return 1;
+        if (m < 16 * 60 + 31) return 2;
+        if (m < 19 * 60 + 31) return 3;
+        return 4;
+    }
+
+    static final int LATE_NIGHT = 0, MORNING = 1, AFTERNOON = 2, EVENING = 3;
+
+    /** Part of the day: late night 0:00–4:59, morning 5:00–11:59, afternoon 12:00–18:29, evening 18:30–23:59. */
+    static int period(long now) {
+        long m = Shaders.timeOfDay(now, 0) / 60_000;
+        if (m < 5 * 60) return LATE_NIGHT;
+        if (m < 12 * 60) return MORNING;
+        if (m < 18 * 60 + 30) return AFTERNOON;
+        return EVENING;
+    }
+
+    /**
+     * A greeting that talks like a person, by the time of day (from minute `from` of the day on), a few of each that take
+     * turns by the hour: late at night it teases you for being up, at sunset it can't decide between afternoon and evening.
+     */
+    private static final Object[][] GREETINGS = {
+        {0, new String[] {"greeting|Still up? It's late, huh", "greeting|Up late, huh?", "greeting|Can't sleep?"}},
+        {5 * 60, new String[] {"greeting|Good morning! Up early, huh", "greeting|Good morning! Coffee yet?"}},
+        {9 * 60, new String[] {"Good morning", "greeting|Good morning! Have a great day"}},
+        {12 * 60, new String[] {"greeting|Good afternoon! Had lunch?", "Good afternoon"}},
+        {14 * 60, new String[] {"Good afternoon", "greeting|An afternoon break?"}},
+        {17 * 60, new String[] {"greeting|Good afternoon... or evening?", "greeting|What a sunset, huh"}},
+        {18 * 60 + 30, new String[] {"Good evening", "greeting|Movie night?"}},
+        {22 * 60, new String[] {"greeting|Good evening! Time to relax", "greeting|Just one more episode?"}},
+    };
+
+    static String greeting(long now) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(now);
+        int minute = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+        String[] options = (String[]) GREETINGS[0][1];
+        for (Object[] g : GREETINGS) if (minute >= (Integer) g[0]) options = (String[]) g[1];
+        int turn = cal.get(Calendar.DAY_OF_YEAR) + cal.get(Calendar.HOUR_OF_DAY);
+        return Ui.tr(options[turn % options.length]);
     }
 
     // MARK: - Formatting

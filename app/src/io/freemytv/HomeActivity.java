@@ -60,6 +60,16 @@ public class HomeActivity extends Activity {
         if (home != null) home.resume();
     }
 
+    @Override protected void onStart() {
+        super.onStart();
+        if (home != null) home.shown();
+    }
+
+    @Override protected void onStop() {
+        if (home != null) home.hidden();
+        super.onStop();
+    }
+
     @Override protected void onPause() {
         if (home != null) home.pause();
         super.onPause();
