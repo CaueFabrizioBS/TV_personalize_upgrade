@@ -1,0 +1,155 @@
+package,name,category
+android,android,System
+android.auto_generated_rro_product__,auto_generated_rro_product__,System
+android.autoinstalls.config.google.gtvpai,Partner app auto-installer,Bloat
+com.amazon.amazonvideo.livingroom,Prime Video,Streaming
+com.amlogic.airplay,airplay,System
+com.android.backupconfirm,backupconfirm,System
+com.android.bluetooth,bluetooth,System
+com.android.captiveportallogin,captiveportallogin,System
+com.android.certinstaller,certinstaller,System
+com.android.companiondevicemanager,companiondevicemanager,System
+com.android.connectivity.resources,resources,System
+com.android.cts.ctsshim,ctsshim,System
+com.android.cts.priv.ctsshim,ctsshim,System
+com.android.dreams.basic,basic,System
+com.android.dynsystem,dynsystem,System
+com.android.externalstorage,externalstorage,System
+com.android.hotspot2.osulogin,osulogin,System
+com.android.htmlviewer,htmlviewer,System
+com.android.inputdevices,inputdevices,System
+com.android.keychain,keychain,System
+com.android.localtransport,localtransport,System
+com.android.location.fused,fused,System
+com.android.managedprovisioning,managedprovisioning,System
+com.android.mtp,mtp,System
+com.android.networkstack.inprocess,inprocess,System
+com.android.networkstack.permissionconfig,permissionconfig,System
+com.android.networkstack.tethering.droidlogic,droidlogic,System
+com.android.networkstack.tethering.inprocess,inprocess,System
+com.android.networkstack.tethering.inprocess.droidlogic,droidlogic,System
+com.android.pacprocessor,pacprocessor,System
+com.android.printspooler,Print spooler,Bloat
+com.android.providers.calendar,calendar,System
+com.android.providers.contacts,contacts,System
+com.android.providers.downloads,downloads,System
+com.android.providers.media,media,System
+com.android.providers.media.module,module,System
+com.android.providers.settings,settings,System
+com.android.providers.tv,tv,System
+com.android.providers.userdictionary,userdictionary,System
+com.android.proxyhandler,proxyhandler,System
+com.android.se,se,System
+com.android.settings.intelligence,intelligence,System
+com.android.sharedstoragebackup,sharedstoragebackup,System
+com.android.shell,shell,System
+com.android.soundpicker,soundpicker,System
+com.android.statementservice,statementservice,System
+com.android.systemui,systemui,System
+com.android.systemui.statusbar.tv.TvStatusBar,TvStatusBar,System
+com.android.tethering.overlay,overlay,System
+com.android.tethering.overlay.gsi,gsi,System
+com.android.tv.frameworkpackagestubs,frameworkpackagestubs,System
+com.android.tv.overlay.DevInputEventOverlay,DevInputEventOverlay,System
+com.android.tv.overlay.lowram,lowram,System
+com.android.tv.overlay.settingsprovider,settingsprovider,System
+com.android.tv.settings,Settings,Settings
+com.android.tv.settings.gms.resoverlay,resoverlay,System
+com.android.tv.settings.google.resoverlay,resoverlay,System
+com.android.tv.settings.vendor.resoverlay,resoverlay,System
+com.android.vending,Play Store,Tools
+com.android.vpndialogs,vpndialogs,System
+com.android.wallpaperbackup,wallpaperbackup,System
+com.android.wifi.resources,resources,System
+com.apple.atve.androidtv.appletv,Apple TV,Streaming
+com.boost.airplay.receiver,AirPlay (Boost),Tools
+com.disney.disneyplus,Disney+,Streaming
+com.dolby.android.audio.service,service,System
+com.droidlogic,droidlogic,System
+com.droidlogic.imageplayer,imageplayer,System
+com.droidlogic.overlay,overlay,System
+com.droidlogic.wifitetheringoverlay,wifitetheringoverlay,System
+com.esaba.downloader,Downloader,Tools
+com.globo.globotv,Globoplay,Streaming
+com.google.android.apps.mediashell,Chromecast built-in,Tools
+com.google.android.apps.tv.dreamx,Ambient mode,Home screen
+com.google.android.apps.tv.launcherx,Google TV home,Home screen
+com.google.android.ext.services,services,System
+com.google.android.ext.shared,shared,System
+com.google.android.feedback,Google Feedback,Bloat
+com.google.android.gms,gms,System
+com.google.android.gsf,gsf,System
+com.google.android.inputmethod.latin,latin,System
+com.google.android.katniss,Google Assistant,Tools
+com.google.android.marvin.talkback,TalkBack,Bloat
+com.google.android.modulemetadata,modulemetadata,System
+com.google.android.onetimeinitializer,onetimeinitializer,System
+com.google.android.overlay.googlewebview,googlewebview,System
+com.google.android.overlay.gtvsconfigx,gtvsconfigx,System
+com.google.android.overlay.gtvssettingsprovider,gtvssettingsprovider,System
+com.google.android.overlay.modules.ext.services,services,System
+com.google.android.overlay.modules.modulemetadata.forframework,forframework,System
+com.google.android.overlay.modules.permissioncontroller,permissioncontroller,System
+com.google.android.overlay.modules.permissioncontroller.forframework,forframework,System
+com.google.android.packageinstaller,packageinstaller,System
+com.google.android.partnersetup,partnersetup,System
+com.google.android.permissioncontroller,permissioncontroller,System
+com.google.android.play.games,Play Games,Games
+com.google.android.syncadapters.calendar,Calendar sync,Bloat
+com.google.android.tts,tts,System
+com.google.android.tungsten.setupwraith,Google TV setup,Home screen
+com.google.android.tv.remote.service,service,System
+com.google.android.videos,videos,System
+com.google.android.webview,webview,System
+com.google.android.youtube.tv,YouTube,Streaming
+com.google.android.youtube.tvmusic,YouTube Music,Music
+com.mercadolibre.android.mplay_tv,Mercado Play,Streaming
+com.mirakulo.astrotv.service,service,System
+com.netflix.ninja,Netflix,Streaming
+com.netflix.tokenmanager,tokenmanager,System
+com.nuvio.tv,Nuvio,Streaming
+com.spotify.tv.android,Spotify,Music
+com.stremio.one,Stremio,Streaming
+com.tcl.UpdatePeripheral,UpdatePeripheral,System
+com.tcl.airplay2,airplay2,System
+com.tcl.android.webview,webview,System
+com.tcl.autopair,autopair,System
+com.tcl.browser,BrowseHere browser,Tools
+com.tcl.channelplus,TCL Channel,Bloat
+com.tcl.dashboard,dashboard,System
+com.tcl.esticker,TCL store stickers,Bloat
+com.tcl.exhibit,TCL store demo,Bloat
+com.tcl.factory.view,view,System
+com.tcl.gamebar,gamebar,System
+com.tcl.globalkeyoverlay,globalkeyoverlay,System
+com.tcl.guard,guard,System
+com.tcl.hearaid,Hearing aid,Tools
+com.tcl.hotelmenu,TCL hotel menu,Bloat
+com.tcl.initsetup,initsetup,System
+com.tcl.inputmethod.international,international,System
+com.tcl.interactive,interactive,System
+com.tcl.logkit,TCL logging,Bloat
+com.tcl.magiconnectfree,TCL MagiConnect,Bloat
+com.tcl.messagebox,TCL messages,Bloat
+com.tcl.miracast,Screen mirroring,Tools
+com.tcl.ocean.instructions,TCL e-manual,Bloat
+com.tcl.partnercustomizer,partnercustomizer,System
+com.tcl.providers.config,config,System
+com.tcl.repairguide,TCL repair guide,Bloat
+com.tcl.smartalexa,smartalexa,System
+com.tcl.smartlink.core,core,System
+com.tcl.suspension,suspension,System
+com.tcl.systemserver,systemserver,System
+com.tcl.ttvs,ttvs,System
+com.tcl.tv,TV inputs,Tools
+com.tcl.tv.tclhome_passive,tclhome_passive,System
+com.tcl.tvinput,tvinput,System
+com.tcl.ui_mediaCenter,ui_mediaCenter,System
+com.tcl.useragreement,useragreement,System
+com.tcl.usercenter,TCL account center,Bloat
+com.tcl.waterfall.overseas,TCL content feed,Home screen
+com.tvos,tvos,System
+com.valvesoftware.steamlink,Steam Link,Games
+com.wbd.stream,Max,Streaming
+gamepass.fire.tv,Game Pass,Games
+io.freemytv,Free My TV home,Home screen

@@ -1,0 +1,16 @@
+day,stage,metric,value,unit,note
+1,before cleanup,mem_available_mb,836,MB,System memory free for apps
+1,after round 1,mem_available_mb,847,MB,16 extras off: +11 MB
+1,"Google TV home, fresh restart",mem_available_mb,907,MB,"Right after a restart, before the switch"
+1,Free My TV home,mem_available_mb,664,MB,With the new home screen running
+1,Free My TV home,home_mb,290,MB,"Home screen memory, first version"
+1,before,animation_scale,1.0,x,System animation speed
+1,after,animation_scale,0.5,x,Faster menus
+3,"living sky, YouTube open (before)",home_gpu_mb,71,MB,Video memory the home keeps while another app plays
+3,"living sky, YouTube open (after)",home_gpu_mb,45,MB,Frees its layers in the background
+3,"rain, first version",janky_pct,39,%,Frames late while switching titles in the rain
+3,"rain, first version",frame_ms,73,ms,Typical frame time
+3,rain as a sliding texture,janky_pct,1,%,
+3,rain as a sliding texture,frame_ms,12,ms,
+4,"tower + music scenes, rain",janky_pct,0,%,"Measured switching titles, day and night"
+4,"tower + music scenes, rain",frame_ms,10,ms,
