@@ -396,6 +396,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         @Override protected void onDraw(Canvas c) {
             if (labelPaint == null) return;
             c.translate(-getLeft(), -getTop());
+            if (kind == SKY) c.scale(getWidth() / (float) w, getHeight() / (float) h);   // drawn in full-screen units
             // The layer may be shifted (bottom drawer): the glass reads the background from where it really is. The
             // drawer and the top buttons are always drawn as if resting in place (they are only visible there and are
             // not redrawn while they move).
@@ -627,7 +628,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         handler.removeCallbacks(restTimer);
         restAt = 0;
         handler.removeCallbacks(skyFrame);
-        for (View v : new View[] {heroLayer, status, platter, tiles, drawerLayer, sheetLayer, toastLayer}) v.setLayerType(LAYER_TYPE_NONE, null);
+        for (View v : new View[] {sky, heroLayer, status, platter, tiles, drawerLayer, sheetLayer, toastLayer}) v.setLayerType(LAYER_TYPE_NONE, null);
     }
 
     void shown() {
@@ -734,7 +735,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
         int width = MeasureSpec.getSize(widthSpec), height = MeasureSpec.getSize(heightSpec);
         float kk = width / 1920f;
-        measure(sky, width, height);
+        measure(sky, (width + 1) / 2, (height + 1) / 2);   // half resolution, shown at 2x (onLayout)
         measure(heroLayer, width, Math.round(790 * kk));
         measure(status, Math.round(1160 * kk), Math.round(270 * kk));   // down to the music widget, on the tabs' row
         // Sized to what they draw (the glass and its shadow; the grown tiles and their shadows): smaller layers are
@@ -754,7 +755,13 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     @Override protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int width = r - l, height = b - t;
         float kk = width / 1920f;
-        sky.layout(0, 0, width, height);
+        // The sky is painted at half resolution in its own GPU layer and shown at twice the size: soft, like the
+        // drawings it comes from, and each UI frame only stretches one small picture instead of painting the whole sky.
+        sky.layout(0, 0, (width + 1) / 2, (height + 1) / 2);
+        sky.setPivotX(0);
+        sky.setPivotY(0);
+        sky.setScaleX(width / (float) ((width + 1) / 2));
+        sky.setScaleY(height / (float) ((height + 1) / 2));
         place(heroLayer, 0, 0);
         place(status, width - status.getMeasuredWidth(), 0);
         place(platter, 0, Math.round(750 * kk));
@@ -943,7 +950,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         if (busy) Choreographer.getInstance().postFrameCallback(this);
         else if (drift) {
             heroLayer.invalidate();
-            Choreographer.getInstance().postFrameCallbackDelayed(this, 33);
+            Choreographer.getInstance().postFrameCallbackDelayed(this, 50);   // the open title's photo drifts at 20 fps
         } else Choreographer.getInstance().postFrameCallbackDelayed(this, 1000);
     }
 
@@ -1470,6 +1477,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
 
     /** The layers on the GPU (with the cozy night's filter, if on); none on Android 8 to 11 (see the constructor). */
     private void setLayers() {
+        // The sky takes the cozy night in its own filter (veil), so its layer has no paint.
+        sky.setLayerType(Ui.LEGACY ? LAYER_TYPE_NONE : LAYER_TYPE_HARDWARE, null);
         for (View v : new View[] {heroLayer, status, platter, tiles, drawerLayer, sheetLayer, toastLayer}) {
             v.setLayerType(Ui.LEGACY && cozyPaint == null || v == toastLayer && cozyPaint == null ? LAYER_TYPE_NONE : LAYER_TYPE_HARDWARE, cozyPaint);
         }

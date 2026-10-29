@@ -41,8 +41,8 @@ import java.util.Random;
  * units, scaled to the screen.
  */
 final class SkyScene {
-    /** Frames for the motion: 20 a second (Rain falls fast, but in short streaks that read as motion). */
-    static final long FRAME_MS = 50;
+    /** Frames for the motion: 10 a second, on purpose, like a hand-drawn cartoon (and light on the TV's GPU). */
+    static final long FRAME_MS = 100;
     static final int CLEAR = 0, CLOUDY = 1, RAIN = 2;
     private static final float POLE_X = 1150, POLE_Y = -1500, STAR_SPIN = 0.0012f;    // radians a second: ~2 pixels a second on screen
     private static final double BIRD_PERIOD_S = 45;
