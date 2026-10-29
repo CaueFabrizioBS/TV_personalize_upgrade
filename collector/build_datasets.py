@@ -135,7 +135,7 @@ def snapshots():
 
 VERSIONS = {   # the benchmark's labels, and what each version is
     "V0": "Google TV, factory", "V1": "Google TV, cleaned up", "V2": "Free My TV, original",
-    "V5": "Free My TV, this fork",
+    "V5": "Free My TV, this fork", "V6": "This fork, lighter sky",
 }
 
 

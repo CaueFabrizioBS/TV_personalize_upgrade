@@ -14,3 +14,6 @@ label,version,app,launch_ms,mem_available_mb,app_mb,home_back_ms,frames,janky_pc
 "Free My TV, this fork",V5,Netflix,1001,432,263,378,,,,,,2
 "Free My TV, this fork",V5,Nuvio,1364,569,236,183,244.0,4.92,13.0,28.0,57.0,2
 "Free My TV, this fork",V5,Spotify,1154,578,184,206,238.0,7.56,12.0,17.0,42.0,2
+"This fork, lighter sky",V6,Netflix,874,450,261,362,,,,,,1
+"This fork, lighter sky",V6,Nuvio,1370,576,244,202,255.0,4.31,13.0,20.0,57.0,1
+"This fork, lighter sky",V6,Spotify,1183,597,172,215,237.0,7.59,11.0,18.0,44.0,1

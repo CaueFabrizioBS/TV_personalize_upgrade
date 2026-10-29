@@ -16,9 +16,10 @@ shows it all in a notebook and a Streamlit dashboard.
 | **V1** Google TV, cleaned up | 20 unused extras turned off (never uninstalled), animations at 0.5× |
 | **V2** Free My TV, original | the open-source, ad-free home screen as published |
 | V3, V4 | picks, title shelf, then the animated sky and weather (measured only at the time) |
-| **V5** Free My TV, this fork | the final version: sky, weather, lookout tower and music scenes |
+| **V5** Free My TV, this fork | sky, weather, lookout tower and music scenes |
+| **V6** this fork, lighter sky | the same scenes, the sky painted at half resolution in its own layer, 10 frames a second |
 
-V0, V1, V2 and V5 were rebuilt on the TV the same day and put through **the same test**
+V0, V1, V2, V5 and V6 were rebuilt on the TV the same day and put through **the same test**
 (`collector/benchmark.py`): restart the TV, rest 3 minutes on the home screen, then measure memory, how fast the home
 screen comes back, 2 minutes moving around it with the arrows, and opening Netflix, Nuvio and Spotify.
 
@@ -29,16 +30,18 @@ screen comes back, 2 minutes moving around it with the arrows, and opening Netfl
 * **Faster back home.** The home screen comes back in about 100 ms with Free My TV against 140 to 150 ms with Google's.
   Through the remote's Home button the gap is bigger: 738 ms on Google's home screen against 96 ms.
 * **Less memory than Google's, more than the original.** Google's home screen uses 170 to 200 MB of RAM; the
-  original Free My TV, 91 MB; this fork about 160 MB: the sky, its layers and the tower cost about 70 MB.
+  original Free My TV, 91 MB; this fork about 160 MB, 145 MB with the lighter sky.
 * **Turning off the extras freed no memory** (V0 to V1): unused extras weren't running anyway. The gain is less
   clutter and nothing running in the background.
 * **Restarting takes 35 to 50 s in every version:** the home screen isn't what slows it.
 
 <p align="center"><img src="images/fps-by-version.png" width="760" alt="Share of frames by FPS band, per version"></p>
 
-* **The animated sky has a cost in smoothness.** Google's factory home screen draws 83% of its frames at the full
-  60 fps (58 fps on average), the original Free My TV 65% (52 fps), and this fork 36% (**49 fps** on average): its
-  sky moves all the time, so the TV draws every frame. Smooth to the eye, but the next thing to improve.
+* **From 49 to 57 fps, keeping every scene.** Google's factory home screen draws 83% of its frames at the full
+  60 fps (58 fps on average) and the original Free My TV 65% (52 fps). V5 got 36% (49 fps): measured frame by
+  frame, the TV's graphics chip was repainting the whole sky on every frame of the shelf moving. V6 paints the sky
+  into its own picture at half resolution, only 10 times a second (on purpose, like a hand-drawn cartoon), and the
+  open title's photo drifts at 20 frames a second: **74% of the frames at 60, 57 fps on average, 2% late**.
 
 <p align="center"><img src="images/apps.png" width="860" alt="App launch times and free RAM with each app open"></p>
 

@@ -4,3 +4,4 @@ label,version,boot_s,home_s,mem_available_mb,home_mb,open_ms,frames,janky_pct,fr
 "Google TV, factory",V0,37,37,854,200,138,1347,2.38,14,19,34,1
 "Google TV, cleaned up",V1,35,36,803,168,148,917,1.74,17,21,32,1
 "Free My TV, this fork",V5,34,34,877,152,97,3584,11.52,20,30,34,2
+"This fork, lighter sky",V6,35,35,916,145,105,3000,2.2,14,21,31,1

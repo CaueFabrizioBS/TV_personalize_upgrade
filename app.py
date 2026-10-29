@@ -7,8 +7,9 @@ import plotly.express as px
 import streamlit as st
 
 D = Path(__file__).parent / "datasets"
-ORDER = ["V0", "V1", "V2", "V5"]
-COLOR = {"V0": "#9AA0A6", "V1": "#5F6368", "V2": "#72B7B2", "V5": "#F58518"}
+ORDER = ["V0", "V1", "V2", "V5", "V6"]
+COLOR = {"V0": "#9AA0A6", "V1": "#5F6368", "V2": "#72B7B2", "V5": "#F58518", "V6": "#B279A2"}
+NOW = "V6"   # the version on the TV
 st.set_page_config(page_title="TV Cleaner", page_icon="📺", layout="wide")
 
 
@@ -36,14 +37,14 @@ st.write("A TCL Google TV (Android 12, 2 GB of RAM), from the factory home scree
          "memory, the Home button, 2 minutes moving with the arrows, and opening Netflix, Nuvio and Spotify.")
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Back to the home screen", f"{mean.loc['V5', 'open_ms']:.0f} ms",
-          f"{mean.loc['V5', 'open_ms'] - mean.loc['V0', 'open_ms']:+.0f} ms vs. factory", delta_color="inverse")
-c2.metric("Home screen's own RAM", f"{mean.loc['V5', 'home_mb']:.0f} MB",
-          f"{mean.loc['V5', 'home_mb'] - mean.loc['V0', 'home_mb']:+.0f} MB vs. factory", delta_color="inverse")
-c3.metric("Average FPS on the home screen", f"{avg_fps['V5']:.0f}",
-          f"{avg_fps['V5'] - avg_fps['V0']:+.0f} vs. factory")
-c4.metric("Restart to home screen", f"{mean.loc['V5', 'boot_s']:.0f} s",
-          f"{mean.loc['V5', 'boot_s'] - mean.loc['V0', 'boot_s']:+.0f} s vs. factory", delta_color="inverse")
+c1.metric("Back to the home screen", f"{mean.loc[NOW, 'open_ms']:.0f} ms",
+          f"{mean.loc[NOW, 'open_ms'] - mean.loc['V0', 'open_ms']:+.0f} ms vs. factory", delta_color="inverse")
+c2.metric("Home screen's own RAM", f"{mean.loc[NOW, 'home_mb']:.0f} MB",
+          f"{mean.loc[NOW, 'home_mb'] - mean.loc['V0', 'home_mb']:+.0f} MB vs. factory", delta_color="inverse")
+c3.metric("Average FPS on the home screen", f"{avg_fps[NOW]:.0f}",
+          f"{avg_fps[NOW] - avg_fps['V0']:+.0f} vs. factory")
+c4.metric("Restart to home screen", f"{mean.loc[NOW, 'boot_s']:.0f} s",
+          f"{mean.loc[NOW, 'boot_s'] - mean.loc['V0', 'boot_s']:+.0f} s vs. factory", delta_color="inverse")
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Versions", "Smoothness", "Apps", "The rain", "Through the day"])
 
@@ -55,7 +56,8 @@ with tab1:
     m = mean.reset_index().assign(name=lambda d: d["version"].map(label))
     st.plotly_chart(px.bar(m, x="name", y=metric, color="version", color_discrete_map=COLOR, text_auto=".0f",
                            labels={"name": "", metric: ""}), use_container_width=True)
-    st.caption("V0 factory, V1 extras off and faster animations, V2 the original Free My TV, V5 this fork. "
+    st.caption("V0 factory, V1 extras off and faster animations, V2 the original Free My TV, V5 this fork, V6 with the "
+               "lighter sky (half resolution, 10 frames a second). "
                "Single runs differ by about 5 to 10%: smaller gaps are noise.")
 
 with tab2:
@@ -69,8 +71,8 @@ with tab2:
                            category_orders={"name": [label[v] for v in ORDER]},
                            color_discrete_sequence=["#E45756", "#F2B447", "#B5D99C", "#54A24B"],
                            labels={"pct": "% of the frames", "name": "", "band": "FPS"}), use_container_width=True)
-    st.caption(f"Average FPS: " + ", ".join(f"{v} {avg_fps[v]:.0f}" for v in ORDER) + ". The fork's sky moves all "
-               "the time, so the TV draws every frame: the price of the animation, and the next thing to improve.")
+    st.caption(f"Average FPS: " + ", ".join(f"{v} {avg_fps[v]:.0f}" for v in ORDER) + ". V5 repainted the whole sky on "
+               "every frame; V6 paints it at half resolution, 10 times a second, in its own layer.")
 
 with tab3:
     st.subheader("Opening Netflix, Nuvio and Spotify")
