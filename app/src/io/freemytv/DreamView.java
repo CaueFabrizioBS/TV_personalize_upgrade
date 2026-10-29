@@ -112,6 +112,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     private final RectF musicArt = new RectF(), musicBar = new RectF();
     private final TextPaint fit = new TextPaint();
     private String playingCorner, playingBottom;
+    private boolean musicShown;
     private float playingCornerWidth, playingBottomWidth, cornerCap, bottomCap, cornerBase;
     // The bars before what's playing move on every frame (drawn over the recorded text, which stays still).
     private final Paint barPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -176,7 +177,13 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         });
         music = new NowPlaying.Music(c, () -> {
             SkyScene.music = musicPlaying();   // the tower joins in
-            invalidate();
+            if (musicShowing() != musicShown) {   // the playing line steps aside for the widget, and back
+                musicShown = musicShowing();
+                fitPlaying();
+                onData();
+            } else {
+                invalidate();
+            }
         });
         Shaders.dream(scene.palette);
         scene.setMotion(0.4f, 0.32f);
@@ -544,7 +551,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     /** What an app is playing, cut to fit the corner and the bottom line: once per title, not while recording. */
     private void fitPlaying() {
         String now = playing.text;
-        if (now == null || quotePaint == null) {
+        if (now == null || quotePaint == null || music != null && music.showing) {   // music has its own widget
             playingCorner = playingBottom = null;
             return;
         }
@@ -901,6 +908,10 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
      */
     private boolean musicPlaying() {
         return music.playing;
+    }
+
+    private boolean musicShowing() {
+        return music.showing;
     }
 
     private void drawMusic(Canvas c, float alpha) {

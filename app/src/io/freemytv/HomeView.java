@@ -116,6 +116,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     private final NowPlaying.Music music;
     private TextPaint musicTitle, musicArtist;
     private String musicTitleFit, musicArtistFit, musicFitFor;
+    private boolean musicShown;
     private final android.graphics.Path musicClip = new android.graphics.Path();
     private final RectF musicBox = new RectF(), musicArt = new RectF();
     // With music playing on the home screen: the screen stays on (the system's screensaver would let the TV sleep in
@@ -489,6 +490,10 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         music = new NowPlaying.Music(a, () -> {
             SkyScene.music = musicPlaying();   // the tower joins in
             statusDirty = true;
+            if (musicShowing() != musicShown) {   // the playing line steps aside for the widget, and back
+                musicShown = musicShowing();
+                heroDirty = true;
+            }
             wake();
             handler.removeCallbacks(musicTick);
             handler.post(musicTick);
@@ -641,6 +646,10 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
 
     private boolean musicPlaying() {
         return music.playing;
+    }
+
+    private boolean musicShowing() {
+        return music.showing;
     }
 
     /** The 2 minutes start again (music started, a key, the home screen shown). */
@@ -1731,8 +1740,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         if (fade <= 0.01f) return;
         int textColor = text.getColor();
         text.setColor(Ui.alpha(textColor, fade));
-        // What an app is playing takes the quotes' place while it plays.
-        String line = clock ? playingClock : playingTab;
+        // What an app is playing takes the quotes' place while it plays; music has its own widget there instead.
+        String line = music.showing ? null : clock ? playingClock : playingTab;
         if (line != null) {
             float cap = clock ? playingClockCap : playingTabCap, gap = cap * 0.6f;
             float base = clock ? L_QUOTES_BASE * k : (L_TABBAR_TOP + L_TABBAR_H / 2) * k + cap / 2;
