@@ -1,0 +1,6 @@
+label,version,boot_s,home_s,mem_available_mb,home_mb,open_ms,frames,janky_pct,frame_p50_ms,frame_p90_ms,frame_p99_ms,run
+"Free My TV, this fork",V5,36,36,863,169,104,3887,9.08,19,31,36,1
+"Free My TV, original",V2,49,49,912,91,114,1200,4.58,14,32,53,1
+"Google TV, factory",V0,37,37,854,200,138,1347,2.38,14,19,34,1
+"Google TV, cleaned up",V1,35,36,803,168,148,917,1.74,17,21,32,1
+"Free My TV, this fork",V5,34,34,877,152,97,3584,11.52,20,30,34,2

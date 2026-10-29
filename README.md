@@ -1,84 +1,86 @@
 # TV Cleaner Analysis
 
-How a smart TV was cleaned up, measured with its own data. A TCL Google TV (Android 12, 2 GB of RAM) had its
-pre-installed extras turned off and got a new, ad-free home screen with a living illustrated sky
-([the app is here](https://github.com/CaueFabrizioBS/free-my-tv)). This project collects data from the TV over
-adb, cleans and anonymizes it, explores it in a notebook and shows it in a Streamlit dashboard.
+A Google TV's performance, version by version. A TCL Google TV (Android 12, 2 GB of RAM) went from the factory home
+screen to a custom, ad-free one with an animated, illustrated sky
+([the app is here](https://github.com/CaueFabrizioBS/free-my-tv)). Was each step faster or slower? This project
+puts every version through the same test on the TV, keeps a log of how the home screen runs through the day, and
+shows it all in a notebook and a Streamlit dashboard.
 
 <p align="center"><img src="images/music-day.webp" width="420" alt="The new home screen's lookout tower, with its resident nodding to the music"></p>
 
-## What the analysis answers
+## The versions
 
-* Where did the screen time go before any change, and which screens do people pass through most?
-* Which packages were turned off, back on, installed or removed, and why?
-* Did turning off the extras free memory?
-* How much did the new home screen cost, and how were its frame times brought under 16.7 ms (60 fps)?
-* Does the TV today still match the log of changes, or did something drift?
+| Version | What it is |
+|---|---|
+| **V0** Google TV, factory | as it came: Google's home screen, every pre-installed extra on, normal animations |
+| **V1** Google TV, cleaned up | 20 unused extras turned off (never uninstalled), animations at 0.5× |
+| **V2** Free My TV, original | the open-source, ad-free home screen as published |
+| V3, V4 | picks, title shelf, then the animated sky and weather (measured only at the time) |
+| **V5** Free My TV, this fork | the final version: sky, weather, lookout tower and music scenes |
+
+V0, V1, V2 and V5 were rebuilt on the TV the same day and put through **the same test**
+(`collector/benchmark.py`): restart the TV, rest 3 minutes on the home screen, then measure memory, how fast the home
+screen comes back, 2 minutes moving around it with the arrows, and opening Netflix, Nuvio and Spotify.
 
 ## Key findings
 
-<p align="center"><img src="images/usage-before.png" width="640" alt="Screen time vs. launches by category"></p>
+<p align="center"><img src="images/versions.png" width="860" alt="Memory, back-to-home time and restart time by version"></p>
 
-* **Three streaming apps held about 90% of the screen time** (Netflix, YouTube, Prime Video), while the home screen
-  had only 2.5% of the time but **35% of the launches**: everyone passes through it, so it's the one screen worth
-  making fast and ad-free.
-* **None of the 15 pre-installed extras had ever been used.** All 15 were turned off; nothing was uninstalled from
-  the system, so every change can be undone with one command.
-* **Turning them off freed only about 11 MB:** disabled apps that weren't running weren't using memory. The gain is
-  less clutter and nothing running in the background, not free RAM.
-* **Frame times:** the first version of the animated rain made 39% of the frames late (73 ms each). Redrawing it as
-  a sliding texture brought it to 1%, and the final version renders a frame in about 10 ms.
-* **Drift caught:** the latest snapshot shows YouTube Music turned off, although the log says it was turned back on.
-  That's what the collector is for.
+* **Faster back home.** The home screen comes back in about 100 ms with Free My TV against 140 to 150 ms with Google's.
+  Through the remote's Home button the gap is bigger: 738 ms on Google's home screen against 96 ms.
+* **Less memory than Google's, more than the original.** Google's home screen uses 170 to 200 MB of RAM; the
+  original Free My TV, 91 MB; this fork about 160 MB: the sky, its layers and the tower cost about 70 MB.
+* **Turning off the extras freed no memory** (V0 to V1): unused extras weren't running anyway. The gain is less
+  clutter and nothing running in the background.
+* **Restarting takes 35 to 50 s in every version:** the home screen isn't what slows it.
 
-<p align="center"><img src="images/frame-times.png" width="640" alt="Frame times while switching titles in the rain"></p>
+<p align="center"><img src="images/fps-by-version.png" width="760" alt="Share of frames by FPS band, per version"></p>
+
+* **The animated sky has a cost in smoothness.** Google's factory home screen draws 83% of its frames at the full
+  60 fps (58 fps on average), the original Free My TV 65% (52 fps), and this fork 36% (**49 fps** on average): its
+  sky moves all the time, so the TV draws every frame. Smooth to the eye, but the next thing to improve.
+
+<p align="center"><img src="images/apps.png" width="860" alt="App launch times and free RAM with each app open"></p>
+
+* **The apps open just as fast** in every version (Netflix about 0.9 s, Spotify 1.2 s, Nuvio 1.1 to 1.5 s).
+  With this fork's home screen waiting behind them there's less RAM free (about 380 MB with Netflix open, against
+  540 to 560 MB with Google's), still with room to spare.
+
+<p align="center"><img src="images/frame-times.png" width="640" alt="Frame times while switching titles in the rain, at each step"></p>
+
+* **How the rain got light:** drawn drop by drop, 39% of the frames came late (73 ms each); as a ready-made texture
+  that slides, with the sky still while titles move, 1%; in the final version, none.
+
+Each version ran once (V5 twice): runs of the same version differ by about 5 to 10%, so smaller gaps are noise.
+
+## Through the day (in progress)
+
+The home screen keeps its own log on the TV: one line every 15 minutes while the TV is on, even with the PC off
+(frame times, free RAM, the app on screen, the sky's period of the day). `collector/pull_tv_log.py` brings it home.
+In 2 to 4 weeks the notebook and the dashboard will show the FPS through the day and the average for each period,
+from 10:00 to midnight.
 
 ## Repository structure
 
 ```
 tv-cleaner-analysis/
-├── .streamlit/
-│   └── config.toml
+├── .streamlit/config.toml
 ├── collector/
-│   ├── collect.py
-│   └── build_datasets.py
-├── datasets/
-│   ├── apps.csv
-│   ├── changes.csv
-│   ├── performance.csv
-│   ├── usage_before.csv
-│   ├── snapshots_system.csv
-│   ├── snapshots_packages.csv
-│   └── snapshots_usage.csv
+│   ├── benchmark.py        the same test on any version of the home screen
+│   ├── pull_tv_log.py      brings home the log the TV keeps by itself
+│   ├── collect.py          a snapshot of packages, memory and today's app usage
+│   ├── frames.py           the home screen's frames since the last run (when the PC is on)
+│   ├── build_datasets.py   anonymizes the raw data into datasets/
+│   └── update.bat          pull + build, for Windows' Task Scheduler
+├── datasets/               the anonymized data
 ├── images/
-├── notebooks/
-│   └── EDA.ipynb
-├── .gitignore
-├── app.py
-├── README.md
+├── notebooks/EDA.ipynb     the full analysis
+├── app.py                  the Streamlit dashboard
 └── requirements.txt
 ```
 
-* `collector/collect.py`: takes a snapshot of the TV over adb (packages, memory, storage, the home screen's frame
-  times, today's screen time per app). Read-only: nothing on the TV changes and nothing shows on screen.
-* `collector/build_datasets.py`: turns the raw snapshots into the public datasets.
-* `datasets/`: the anonymized data used by the notebook and the app.
-* `notebooks/EDA.ipynb`: the full analysis, with the charts.
-* `app.py`: the Streamlit dashboard.
-
-## The data
-
-| File | One row per | Columns |
-|---|---|---|
-| `apps.csv` | package | name, category (Streaming, Music, Games, Home screen, Tools, Bloat, System) |
-| `usage_before.csv` | app used before the cleanup | enabled, type, share of screen time and of launches |
-| `changes.csv` | change made | day, action (disabled, enabled, installed, uninstalled), round, reason |
-| `performance.csv` | measurement | day, stage, metric (free memory, frame time, janky frames...), value |
-| `snapshots_*.csv` | collector snapshot | the TV's system state, every package's state and the day's screen time shares |
-
-**Privacy.** The raw collector output stays in `datasets/private/`, which is never committed. The public files have
-no IP address, no exact dates or times (a date is *day N*, day 1 being the day the cleanup started) and no hours of
-watching (screen time is each app's share of the total).
+**Privacy.** The raw data stays in `datasets/private/`, which is never committed. The public files have no IP
+address and no dates (a date is *day N*), and screen time is a share of the total, not hours.
 
 ## Run it
 
@@ -87,19 +89,16 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-### Collect from your own TV
+### Test your own TV
 
 You need [adb](https://developer.android.com/tools/releases/platform-tools) and the TV's developer options with USB
-debugging on (Settings → System → About → press *Android TV OS build* 7 times).
+debugging on (Settings → System → About → press *Android TV OS build* 7 times). The benchmark restarts the TV.
 
 ```bash
-python collector/collect.py 192.168.1.50
+python collector/benchmark.py 192.168.1.50 "V0 my factory home screen"
 python collector/build_datasets.py
 ```
 
-Run the collector now and then (each run adds a snapshot) to follow how the TV changes over time, and write your
-own changes in `datasets/changes.csv`. Day 1 is your first snapshot's day (or the date in `datasets/private/day_one.txt`).
-
 ## Tools
 
-Python, pandas, matplotlib, Plotly, Streamlit, adb (Android Debug Bridge).
+Python, pandas, NumPy, matplotlib, Plotly, Streamlit, adb (Android Debug Bridge), and Java for the TV-side log.

@@ -1,0 +1,16 @@
+label,version,app,launch_ms,mem_available_mb,app_mb,home_back_ms,frames,janky_pct,frame_p50_ms,frame_p90_ms,frame_p99_ms,run
+"Free My TV, this fork",V5,Netflix,913,331,205,495,,,,,,1
+"Free My TV, this fork",V5,Nuvio,1565,753,162,275,320.0,3.44,15.0,18.0,18.0,1
+"Free My TV, this fork",V5,Spotify,1205,701,181,222,828.0,4.71,12.0,17.0,32.0,1
+"Free My TV, original",V2,Netflix,818,481,278,253,,,,,,1
+"Free My TV, original",V2,Nuvio,1386,607,226,143,264.0,4.92,13.0,25.0,40.0,1
+"Free My TV, original",V2,Spotify,1148,641,193,183,233.0,4.29,11.0,16.0,34.0,1
+"Google TV, factory",V0,Netflix,948,537,258,315,,,,,,1
+"Google TV, factory",V0,Nuvio,1075,676,234,208,369.0,3.25,15.0,26.0,42.0,1
+"Google TV, factory",V0,Spotify,1196,662,178,185,281.0,4.98,13.0,18.0,36.0,1
+"Google TV, cleaned up",V1,Netflix,705,564,263,292,,,,,,1
+"Google TV, cleaned up",V1,Nuvio,1401,652,236,197,258.0,3.88,13.0,22.0,44.0,1
+"Google TV, cleaned up",V1,Spotify,1218,637,197,500,235.0,4.68,12.0,16.0,34.0,1
+"Free My TV, this fork",V5,Netflix,1001,432,263,378,,,,,,2
+"Free My TV, this fork",V5,Nuvio,1364,569,236,183,244.0,4.92,13.0,28.0,57.0,2
+"Free My TV, this fork",V5,Spotify,1154,578,184,206,238.0,7.56,12.0,17.0,42.0,2
