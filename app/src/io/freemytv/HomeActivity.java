@@ -42,6 +42,7 @@ public class HomeActivity extends Activity {
         home = new HomeView(this);
         setContentView(home);
         getWindow().setBackgroundDrawable(null);
+        PerfLog.watch(getWindow(), this);
         if (getIntent().getBooleanExtra(EXTRA_ALL_APPS, false)) home.showAllApps();
     }
 
