@@ -87,7 +87,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     private static final int UP_COLOR = 0xFF30D158, DOWN_COLOR = 0xFFFF453A;
     private static final long TOAST_MS = 6000, FADE_MS = 800;
     /** Blur radii of the shadow and shadowDeep paints (Shadows needs them to draw the same blur on older TVs). */
-    private static final float SHADOW_BLUR = 26, DEEP_BLUR = 30, HALO_BLUR = 30;
+    private static final float SHADOW_BLUR = 26, DEEP_BLUR = 30, HALO_BLUR = 36;
     private static final int SKY = 0, HERO = 1, STATUS = 2, PLATTER = 3, TILES = 4, DRAWER = 5, SHEET = 6, TOAST = 7;
     private static final int Z_STATUS = 0, Z_HERO = 1, Z_SHELF = 2, Z_DRAWER = 3;
     private static final ExecutorService LOADER = Executors.newSingleThreadExecutor();
@@ -1861,9 +1861,9 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         // Focused: light glowing from behind it, so it's clear the shelf has the focus and not the titles above.
         if (fc > 0.01f) {
             tmp.set(-bw / 2, -bh / 2, bw / 2, bh / 2);
-            tmp.inset(-8 * k, -8 * k);
-            halo.setColor(Ui.alpha(0xFFFFFFFF, 0.95f * fc));
-            shadows.draw(c, tmp, r0 + 8 * k, HALO_BLUR * k, halo);
+            tmp.inset(-16 * k, -16 * k);
+            halo.setColor(Ui.alpha(0xFFFFFFFF, fc));
+            shadows.draw(c, tmp, r0 + 16 * k, HALO_BLUR * k, halo);
         }
         c.restore();
         int[] style = TILE_STYLE.get(it.key);
