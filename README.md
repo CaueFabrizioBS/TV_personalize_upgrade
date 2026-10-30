@@ -56,6 +56,11 @@ screen comes back, 2 minutes moving around it with the arrows, and opening Netfl
 
 Each version ran once (V5 twice): runs of the same version differ by about 5 to 10%, so smaller gaps are noise.
 
+**What's given up.** With Free My TV, Google's home screen is off, and it's what answers the voice assistant's film
+and series requests ("show me comedies"): those come back weaker. Opening apps, playing music, the weather and
+questions still work. Gemini, Google's newer assistant, isn't offered for this TV yet (the Play Store says it isn't
+compatible: Android 12, 2 GB of RAM), so its weight on the home screen couldn't be measured.
+
 ## Through the day (in progress)
 
 The home screen keeps its own log on the TV: one line every 15 minutes while the TV is on, even with the PC off
