@@ -1858,6 +1858,13 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         tmp.offset(0, (4 + 14 * f + 6 * l) * k);
         shadowDeep.setColor(Ui.alpha(0xFF000000, tone(0.14f, 0.3f) + tone(0.18f, 0.3f) * fc + 0.14f * Ui.clamp(l)));
         shadows.draw(c, tmp, r0, DEEP_BLUR * k, shadowDeep);
+        // Focused: a soft light behind it, so it's clear the shelf has the focus and not the titles above.
+        if (fc > 0.01f) {
+            tmp.set(-bw / 2, -bh / 2, bw / 2, bh / 2);
+            tmp.inset(-6 * k, -6 * k);
+            halo.setColor(Ui.alpha(0xFFFFFFFF, 0.45f * fc));
+            shadows.draw(c, tmp, r0 + 6 * k, 22 * k, halo);
+        }
         c.restore();
         int[] style = TILE_STYLE.get(it.key);
         if (it.logo != null && style != null) {
@@ -1892,6 +1899,16 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
             drawLogo(c, it, cell, s, 0);
         } else {
             if (it.tile != null) roundImage(c, it.tile, it.tileShader, cell, r);
+        }
+        // And a thin white ring around it, a little apart from the icon.
+        if (fc > 0.01f) {
+            float gap = 5 * k;
+            tmp.set(cell);
+            tmp.inset(-gap, -gap);
+            rim.setShader(null);
+            rim.setColor(Ui.alpha(0xFFFFFFFF, 0.9f * fc));
+            rim.setStrokeWidth(3 * k);
+            c.drawRoundRect(tmp, r + gap, r + gap, rim);
         }
     }
 
