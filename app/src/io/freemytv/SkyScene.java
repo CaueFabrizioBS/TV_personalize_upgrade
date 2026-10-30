@@ -41,8 +41,8 @@ import java.util.Random;
  * units, scaled to the screen.
  */
 final class SkyScene {
-    /** Frames for the motion: 10 a second, on purpose, like a hand-drawn cartoon (and light on the TV's GPU). */
-    static final long FRAME_MS = 100;
+    /** Frames for the motion: 20 a second, light on the TV's GPU (at 10 the drifting clouds looked like stutter). */
+    static final long FRAME_MS = 50;
     static final int CLEAR = 0, CLOUDY = 1, RAIN = 2;
     private static final float POLE_X = 1150, POLE_Y = -1500, STAR_SPIN = 0.0012f;    // radians a second: ~2 pixels a second on screen
     private static final double BIRD_PERIOD_S = 45;
@@ -391,6 +391,8 @@ final class SkyScene {
             if (towers.containsKey(s)) return s;
         }
         if (weather == RAIN) return night ? "off" : "rain";           // asleep inside, or out in a raincoat
+        // Breakfast: a hot mug from sunrise until 10:00, cloudy or not.
+        if ((slot == 5 || slot == 1 && HomeData.minutesOfDay(now) < 10 * 60) && towers.containsKey("mug")) return "mug";
         if (weather == CLOUDY && !night) return "binoculars";
         switch (slot) {
             case 4: return HomeData.minutesOfDay(now) >= 19 * 60 + 31 ? "lit" : "off";   // cooking, or asleep at 3–5
