@@ -1,0 +1,21 @@
+{
+ "about": "Netflix games playable on the TV (phone as controller), for the home screen's Games tab. id = Netflix title id (opens https://www.netflix.com/title/<id> in the Netflix app); the image is games/<id>.jpg. Source: Netflix's own game pages and What's on Netflix's list, 2026-10-27. Left out: Insanidade (Unhinged, horror) and games Netflix removed.",
+ "games": [
+  {"id": 81684457, "name": "LEGO Party!"},
+  {"id": 82089527, "name": "The Jackbox Party Essentials"},
+  {"id": 82127407, "name": "Overcooked! All You Can Eat"},
+  {"id": 82050895, "name": "FIFA World Cup Launch Edition"},
+  {"id": 81993046, "name": "Morto Não Fala: Um Jogo Knives Out"},
+  {"id": 82018641, "name": "Pictionary: Noite de Jogos"},
+  {"id": 81786495, "name": "Os Penetras: Engane seus Amigos!"},
+  {"id": 81984005, "name": "Boggle Party"},
+  {"id": 81946667, "name": "Tetris Time Warp"},
+  {"id": 82071014, "name": "Um Maluco no Golfe: Confusão em Campo '98 (Demo)"},
+  {"id": 81778424, "name": "Missile Command: Recharged"},
+  {"id": 81778466, "name": "Centipede: Recharged"},
+  {"id": 81778422, "name": "Caverns of Mars: Recharged"},
+  {"id": 81680940, "name": "Cozy Grove: Jornada Espectral"},
+  {"id": 81665457, "name": "Rocket"},
+  {"id": 81708315, "name": "Link Twin"}
+ ]
+}
