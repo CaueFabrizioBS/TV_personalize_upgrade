@@ -15,7 +15,8 @@ O QUE VOCÊ PRECISA
 ------------------
 - Uma Google TV ou Android TV com Android 8 ou mais novo.
 - Um computador (Windows, Mac ou Linux) na MESMA rede Wi-Fi da TV.
-- O arquivo do app: release/FreeMyTV-sky.apk (está neste repositório).
+- O arquivo do app, FreeMyTV-sky.apk. Baixe na página de versões do projeto:
+  https://github.com/CaueFabrizioBS/TV_personalize_upgrade/releases/latest
 - O controle remoto da TV.
 
 

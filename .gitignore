@@ -225,3 +225,6 @@ __marimo__/
 # The raw collector output: exact times and the TV's address stay on this computer
 /datasets/private/
 .DS_Store
+
+# The APK goes to GitHub Releases, not into the repository
+/release/*.apk

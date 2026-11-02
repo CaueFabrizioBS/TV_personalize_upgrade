@@ -1,5 +1,7 @@
 # TV Personalize Upgrade
 
+**[Download the launcher (APK) and the install guide](https://github.com/CaueFabrizioBS/TV_personalize_upgrade/releases/latest)**
+
 A new, ad-free home screen for a TCL Google TV (Android 12, 2 GB of RAM), and a data analysis of whether it actually
 runs better than the factory one.
 
@@ -65,9 +67,9 @@ TV_personalize_upgrade/
 ├── notebooks/
 │   └── EDA.ipynb           the full analysis, step by step
 ├── release/
-│   └── FreeMyTV-sky.apk    the launcher, ready to install on any Google TV / Android TV
+│   └── NOTAS-DA-VERSAO.md  the release notes (the APK itself is in GitHub Releases)
 ├── .gitignore
-├── MANUAL-DE-INSTALACAO.txt  step-by-step install guide, in Portuguese
+├── MANUAL-DE-INSTALACAO.txt  step-by-step install guide, in Portuguese (also in the release)
 ├── app.py                  the Streamlit dashboard
 ├── README.md
 └── requirements.txt
@@ -95,7 +97,7 @@ You need a Google TV or Android TV (Android 8 or newer), a computer on the same 
 
 1. **On the TV**, turn on developer mode: Settings → System → About → press *Android TV OS build* 7 times. Then
    Settings → System → Developer options → turn on **USB debugging**. Note the TV's IP address (Settings → Network).
-2. **On the computer**, download [`release/FreeMyTV-sky.apk`](release/FreeMyTV-sky.apk) and install it:
+2. **On the computer**, download `FreeMyTV-sky.apk` from the [latest release](https://github.com/CaueFabrizioBS/TV_personalize_upgrade/releases/latest) and install it:
    ```bash
    adb connect 192.168.1.50:5555
    adb install -r FreeMyTV-sky.apk
