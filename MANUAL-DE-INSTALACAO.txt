@@ -1,0 +1,158 @@
+MANUAL DE INSTALAÇÃO: TELA INICIAL "FREE MY TV" COM CÉU ANIMADO
+=================================================================
+
+Uma tela inicial nova para Google TV e Android TV: sem anúncios, com um céu desenhado
+que muda com a hora do dia e com o clima de verdade, uma torre de observação e cenas
+que reagem à música.
+
+Tempo: uns 15 minutos.
+Nada é desinstalado da TV, e dá para voltar à tela original com um botão (passo 9).
+
+(English: see README.md, section "Install the home screen on your TV".)
+
+
+O QUE VOCÊ PRECISA
+------------------
+- Uma Google TV ou Android TV com Android 8 ou mais novo.
+- Um computador (Windows, Mac ou Linux) na MESMA rede Wi-Fi da TV.
+- O arquivo do app: release/FreeMyTV-sky.apk (está neste repositório).
+- O controle remoto da TV.
+
+
+PASSO 1. LIGAR O MODO DESENVOLVEDOR NA TV
+-----------------------------------------
+1. Na TV, abra Configurações > Sistema > Sobre.
+2. Desça até "Build do sistema operacional do Android TV".
+3. Aperte OK nele 7 vezes seguidas.
+4. Aparece a mensagem "Você agora é um desenvolvedor".
+
+
+PASSO 2. LIGAR A DEPURAÇÃO USB
+------------------------------
+1. Volte para Configurações > Sistema.
+2. Abra "Opções do desenvolvedor".
+3. Ligue "Depuração USB".
+
+Mesmo pelo Wi-Fi, é essa opção que permite instalar o app.
+
+
+PASSO 3. ANOTAR O ENDEREÇO (IP) DA TV
+-------------------------------------
+1. Abra Configurações > Rede e Internet.
+2. Escolha a sua rede Wi-Fi.
+3. Anote o "Endereço IP". Exemplo: 192.168.1.50
+
+
+PASSO 4. INSTALAR O ADB NO COMPUTADOR
+-------------------------------------
+O ADB é a ferramenta oficial do Google que conversa com a TV.
+
+1. Baixe o "SDK Platform-Tools" no site oficial:
+   https://developer.android.com/tools/releases/platform-tools
+2. Descompacte numa pasta fácil. Exemplo no Windows: C:\platform-tools
+3. Coloque o arquivo FreeMyTV-sky.apk dentro dessa mesma pasta.
+4. Abra um terminal nessa pasta:
+   - Windows: abra a pasta, clique na barra de endereço, digite cmd e aperte Enter.
+   - Mac ou Linux: abra o Terminal e use "cd" até a pasta.
+
+
+PASSO 5. CONECTAR O COMPUTADOR NA TV
+------------------------------------
+No terminal, digite (trocando pelo IP que você anotou):
+
+    adb connect 192.168.1.50:5555
+
+Na TV aparece a pergunta "Permitir depuração USB?".
+Marque "Sempre permitir deste computador" e aperte OK.
+
+Se aparecer "unauthorized", rode o comando de novo depois de aceitar na TV.
+(No Mac ou Linux, se "adb" não for encontrado, use ./adb no lugar de adb.)
+
+
+PASSO 6. INSTALAR O APP
+-----------------------
+No terminal:
+
+    adb install -r FreeMyTV-sky.apk
+
+Espere aparecer "Success".
+
+Se parecer travado, olhe a TV: o Google Play Protect pode segurar a instalação
+("App arriscado bloqueado"). Escolha "Mais detalhes" > "Instalar mesmo assim".
+
+
+PASSO 7. SÓ PARA TVs TCL
+------------------------
+A TCL bloqueia apps rodando em segundo plano, e sem isso a troca de tela inicial não
+funciona. No terminal:
+
+    adb shell "appops set io.freemytv AUTO_START allow || appops set io.freemytv APP_AUTO_START allow"
+
+
+PASSO 8. ATIVAR A NOVA TELA INICIAL
+-----------------------------------
+1. No terminal, desconecte o computador (importante no Android 8 a 10):
+
+       adb disconnect 192.168.1.50:5555
+
+2. Na TV, abra o app "Free My TV" (fica na lista de apps).
+3. Escolha "Início" > "Free My TV" (em inglês: "Home Screen").
+4. A TV pergunta de novo "Permitir depuração USB?", agora para o próprio app.
+   Marque "Sempre permitir" e aperte OK.
+5. Aperte o botão Home do controle. Pronto!
+
+Dica: em "Ajustes do Início", ligue "Widget tocando agora" para ver a música que está
+tocando e ativar as cenas de música. Com esse widget na tela, a TV não desliga sozinha
+no meio da música.
+
+
+PASSO 9. COMO VOLTAR À TELA ORIGINAL
+------------------------------------
+1. Abra o app "Free My TV".
+2. Escolha "Início" > "Original".
+Tudo volta como era. Depois, se quiser, desinstale o app pelas Configurações da TV.
+
+
+O QUE ESTA VERSÃO TEM E NÃO TEM
+-------------------------------
+Tem:
+- Céu animado em 6 momentos do dia (madrugada, nascer do sol, manhã, meio-dia,
+  pôr do sol e noite), com nuvens, pássaros e estrelas.
+- Clima de verdade (nuvens e chuva), atualizado a cada 15 minutos.
+- A torre de observação com o morador, e as cenas de música.
+- Prateleira de apps, tela de descanso com relógio e clima, e o modo noite aconchegante.
+
+Não tem:
+- Sugestões de filmes e séries. Elas precisam de uma chave pessoal (gratuita) do TMDB.
+  Quem quiser pode gerar o próprio APK com a chave: veja free-my-tv/README.md,
+  seção "The manual way".
+
+A cidade do clima vem do fuso horário da TV. Para trocar: app Free My TV >
+"Ajustes do Início" > "Cidade".
+
+
+PROBLEMAS COMUNS
+----------------
+"cannot connect" ou "failed to connect"
+  - Confira se a TV e o computador estão no mesmo Wi-Fi.
+  - Confira o IP da TV (passo 3) e se a Depuração USB está ligada (passo 2).
+  - Rode   adb kill-server   e depois o adb connect de novo.
+
+"INSTALL_FAILED_UPDATE_INCOMPATIBLE"
+  - Já existe outra versão do Free My TV, assinada com outra chave.
+  - Volte para "Original" (passo 9), desinstale o app antigo e instale de novo.
+
+Chromecast com Google TV (Android 14) não conecta na porta 5555
+  - Ligue "Depuração sem fio" nas Opções do desenvolvedor, pareie com
+    adb pair <endereço:porta> <código>   e depois rode   adb tcpip 5555
+
+A tela inicial volta para a do Google
+  - Abra o app Free My TV e escolha "Free My TV" de novo em "Início".
+  - Em TVs TCL, confira o passo 7.
+
+
+CRÉDITOS
+--------
+Free My TV é um projeto de código aberto (licença MIT):
+https://github.com/simbasjungles/free-my-tv
+Esta versão com o céu animado faz parte do projeto TV Personalize Upgrade.

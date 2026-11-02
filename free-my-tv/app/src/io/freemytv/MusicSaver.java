@@ -29,6 +29,7 @@ public class MusicSaver extends Activity {
     private void keepOn() {
         if (music.playing) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        StayAwake.want(this, music.playing);
     }
 
     @Override protected void onResume() {
@@ -41,6 +42,7 @@ public class MusicSaver extends Activity {
     @Override protected void onPause() {
         view.stop();
         music.stop();
+        StayAwake.want(this, false);   // the home screen says again if the music still plays
         super.onPause();
     }
 

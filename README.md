@@ -67,6 +67,7 @@ TV_personalize_upgrade/
 ├── release/
 │   └── FreeMyTV-sky.apk    the launcher, ready to install on any Google TV / Android TV
 ├── .gitignore
+├── MANUAL-DE-INSTALACAO.txt  step-by-step install guide, in Portuguese
 ├── app.py                  the Streamlit dashboard
 ├── README.md
 └── requirements.txt
@@ -86,6 +87,8 @@ streamlit run app.py
 ```
 
 ## Install the home screen on your TV
+
+A step-by-step guide in Portuguese is in [MANUAL-DE-INSTALACAO.txt](MANUAL-DE-INSTALACAO.txt).
 
 You need a Google TV or Android TV (Android 8 or newer), a computer on the same Wi-Fi and
 [adb](https://developer.android.com/tools/releases/platform-tools).

@@ -662,6 +662,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     /** The screen stays on while music plays on the home screen (no screensaver, no sleep); as usual otherwise. */
     private void keepOn() {
         boolean want = running && !hidden && music.playing;
+        StayAwake.want(activity, want);   // the TV's inactivity timer too (it ignores the flag)
         if (want == keptOn) return;
         keptOn = want;
         if (want) activity.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
