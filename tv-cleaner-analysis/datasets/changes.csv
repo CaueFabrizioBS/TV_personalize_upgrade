@@ -1,0 +1,35 @@
+day,package,action,round,reason
+0,com.tcl.magiconnectfree,disabled,factory,Already off when the cleanup started
+1,com.google.android.play.games,disabled,round 1,Pre-installed extra with no use
+1,com.google.android.feedback,disabled,round 1,Pre-installed extra with no use
+1,com.android.printspooler,disabled,round 1,Pre-installed extra with no use
+1,com.google.android.syncadapters.calendar,disabled,round 1,Pre-installed extra with no use
+1,android.autoinstalls.config.google.gtvpai,disabled,round 1,Pre-installed extra with no use
+1,com.google.android.marvin.talkback,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.esticker,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.exhibit,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.hotelmenu,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.logkit,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.messagebox,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.ocean.instructions,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.repairguide,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.channelplus,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.usercenter,disabled,round 1,Pre-installed extra with no use
+1,com.google.android.youtube.tvmusic,disabled,round 1,Pre-installed extra with no use
+1,com.tcl.browser,disabled,round 1,Pre-installed browser
+1,com.tcl.browser,enabled,round 1,Turned out to be the browser in use (BrowseHere)
+1,com.globo.globotv,disabled,round 2,Installed app nobody used
+1,com.apple.atve.androidtv.appletv,disabled,round 2,Installed app nobody used
+1,com.mercadolibre.android.mplay_tv,disabled,round 2,Installed app nobody used
+1,com.valvesoftware.steamlink,disabled,round 2,Installed app nobody used
+1,com.boost.airplay.receiver,disabled,round 2,Installed app nobody used
+1,com.esaba.downloader,uninstalled,round 2,Sideloading tool no longer needed
+1,com.nuvio.tv,installed,round 2,"New player, picks open in it"
+1,io.freemytv,installed,home screen,Ad-free home screen (Free My TV fork)
+1,com.google.android.apps.tv.launcherx,disabled,home screen,Replaced by Free My TV
+1,com.google.android.tungsten.setupwraith,disabled,home screen,Replaced by Free My TV
+1,com.tcl.waterfall.overseas,disabled,home screen,"TCL content feed, replaced by Free My TV"
+1,com.google.android.apps.tv.dreamx,disabled,home screen,Replaced by Free My TV
+1,com.google.android.apps.tv.dreamx,enabled,home screen,Brought back as the screensaver
+3,com.spotify.tv.android,installed,music,Music app for the now-playing widget
+3,com.google.android.youtube.tvmusic,enabled,music,Brought back for music

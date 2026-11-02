@@ -1,0 +1,2 @@
+day,home_app,storage_used_pct,packages,packages_disabled,packages_user,frames,janky_pct,frame_p50_ms,frame_p90_ms,frame_p95_ms,mem_available_mb,mem_total_mb,home_mb
+4,io.freemytv,47,152,25,12,22091,0.53,10,19,28,499.0,1911.0,111.0
