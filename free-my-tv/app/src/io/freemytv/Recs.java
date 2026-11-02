@@ -1403,11 +1403,19 @@ final class Recs {
         JSONObject br = wp == null ? null : wp.optJSONObject("results") == null ? null : wp.optJSONObject("results").optJSONObject(REGION);
         JSONArray flat = br == null ? null : br.optJSONArray("flatrate");
         p.where = where(br);
-        // On Netflix here and Netflix is on the TV: it opens there, on the title's page when Wikidata knows its Netflix
-        // number, else on Netflix's home; everything else opens in Nuvio.
-        boolean onNetflix = false;
-        for (int i = 0; flat != null && i < flat.length(); i++) onNetflix |= flat.getJSONObject(i).optInt("provider_id") == 8;
-        if (nuvioMode() && onNetflix && installed(NETFLIX)) {
+        // Nuvio mode: the title opens in the first service on the TV that streams it here (hide_services leaves out the
+        // ones the TV ships without a subscription): Netflix on the title's page when Wikidata knows its Netflix number,
+        // the others on their app's home (or the title's page with a Watchmode key). None of them: Nuvio.
+        String[] mine = null;
+        for (int i = 0; nuvioMode() && flat != null && i < flat.length() && mine == null; i++) {
+            String[] s = service(flat.getJSONObject(i).optString("provider_name"), flat.getJSONObject(i).optInt("provider_id"));
+            if (s != null && installed(s[2])) mine = s;
+        }
+        if (mine != null && !mine[1].equals("netflix")) {
+            p.app = mine[1];
+            p.pkg = mine[2];
+            flat = null;
+        } else if (mine != null) {
             p.app = "netflix";
             p.pkg = NETFLIX;
             String id = netflixId(p);
