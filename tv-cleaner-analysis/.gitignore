@@ -1,6 +1,0 @@
-# The raw collector output: exact times, hours watched and the TV's address stay on this computer
-datasets/private/
-
-__pycache__/
-.ipynb_checkpoints/
-.DS_Store

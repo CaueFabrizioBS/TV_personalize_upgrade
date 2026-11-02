@@ -220,10 +220,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 # ---- TV_personalize_upgrade ----
-# Personal working notes and drafts stay on this computer (they hold the TV's address and family details)
-/HISTORICO-DA-TV.md
-/LEIA-ME.md
-/arquivo/
-/imagens/
-/*.jpg
-/*.png
+# Personal notes and drafts stay on this computer (they hold the TV's address and family details)
+/_pessoal/
+# The raw collector output: exact times and the TV's address stay on this computer
+/datasets/private/
+.DS_Store
