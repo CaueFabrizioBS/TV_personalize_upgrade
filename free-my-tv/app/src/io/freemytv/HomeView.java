@@ -88,7 +88,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     private static final long TOAST_MS = 6000, FADE_MS = 800;
     /** Blur radii of the shadow and shadowDeep paints (Shadows needs them to draw the same blur on older TVs). */
     private static final float SHADOW_BLUR = 26, DEEP_BLUR = 30, HALO_BLUR = 36;
-    private static final int SKY = 0, HERO = 1, STATUS = 2, PLATTER = 3, TILES = 4, DRAWER = 5, SHEET = 6, TOAST = 7;
+    private static final int SKY = 0, HERO = 1, STATUS = 2, PLATTER = 3, TILES = 4, DRAWER = 5, SHEET = 6, TOAST = 7, TOUR = 8;
     private static final int Z_STATUS = 0, Z_HERO = 1, Z_SHELF = 2, Z_DRAWER = 3;
     private static final ExecutorService LOADER = Executors.newSingleThreadExecutor();
     // Light design (the L_ constants): title, tab bar, three recommendation cards and the shelf.
@@ -172,7 +172,10 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         @Override public void hold(int id) { a11yHold(); }
     });
     private final RectF a11yRect = new RectF();
-    private final Layer sky, heroLayer, status, platter, tiles, drawerLayer, sheetLayer, toastLayer;
+    private final Layer sky, heroLayer, status, platter, tiles, drawerLayer, sheetLayer, toastLayer, tourLayer;
+    private final Tour tour;
+    private float tourHide;   // 1: the tour shows the sky alone (the greeting, picks and shelf faded out)
+    private android.animation.ValueAnimator tourFade;
     private int zone = Z_SHELF;
 
     // Night look (like Apple's "Automatic" appearance): darker from sunset to sunrise, with a 2 s transition.
@@ -411,6 +414,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
                 case TILES: drawTiles(c); break;
                 case DRAWER: drawDrawer(c); break;
                 case SHEET: drawSheet(c); break;
+                case TOUR: tour.draw(c, w, h); break;
                 default: drawToast(c); break;
             }
             scene.setOffset(0, 0);
@@ -517,17 +521,20 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         drawerLayer = new Layer(a, DRAWER);
         sheetLayer = new Layer(a, SHEET);
         toastLayer = new Layer(a, TOAST);
+        tourLayer = new Layer(a, TOUR);
+        tour = new Tour(a, tourHost());
         // Hardware layers on the GPU: only the one that changed is redrawn; moving, fading and scaling stay cheap.
         // Not on Android 8 to 11: on older GPUs (a Mi Box 3's Mali-450) redrawing and compositing a big layer on every
         // frame cost more than drawing straight to the screen (measured: focus on the picks 33 → 12 ms a frame, the
         // drawer 19 → 17 ms).
         setLayers();
-        for (View v : new View[] {sky, heroLayer, status, platter, tiles, drawerLayer, sheetLayer, toastLayer}) {
+        for (View v : new View[] {sky, heroLayer, status, platter, tiles, drawerLayer, sheetLayer, toastLayer, tourLayer}) {
             v.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);   // TalkBack reads the items (Spoken)
             addView(v);
         }
         setContentDescription("Free My TV");
         drawerLayer.setVisibility(INVISIBLE);
+        tourLayer.setVisibility(INVISIBLE);
         for (int i = 0; i < topFocus.length; i++) {
             topFocus[i] = new Spring(0.26f, 0.85f, 0);
             topRects[i] = new RectF();
@@ -557,6 +564,9 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         handler.postDelayed(autoNext, AUTO_NEXT_MS);
         checkNight(false);
         updateCozy();
+        if (!tour.active() && (!ui.getBoolean("tourSeen", false) || debugFloat("debug.freemytv.tour") == 1)) {
+            handler.postDelayed(startTour, 1500);   // the sky first, then the cards
+        }
         boolean h24 = Prefs.clock24();
         if (h24 != clock24) {   // 12/24 hours changed in the TV's settings: the clock and the drawer's times again
             clock24 = h24;
@@ -755,6 +765,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         measure(drawerLayer, width, Math.round(600 * kk));
         measure(sheetLayer, width, height);
         measure(toastLayer, Math.round(1000 * kk), Math.round(220 * kk));
+        measure(tourLayer, width, height);
         setMeasuredDimension(width, height);
     }
 
@@ -781,6 +792,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         sheetLayer.setPivotX(width / 2f);
         sheetLayer.setPivotY(height / 2f);
         place(toastLayer, (width - toastLayer.getMeasuredWidth()) / 2, 0);
+        tourLayer.layout(0, 0, width, height);
     }
 
     private static void place(View v, int x, int y) {
@@ -981,7 +993,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     /** Drawer and sheet: the layers' positions and opacity (without redrawing their content). */
     private void updateMotion() {
         float d = drawer.value, dc = Ui.clamp(d), s = Ui.clamp(sheet.value);
-        float home = 1 - s, top = home * (1 - smoothstep(0, 0.32f, dc));
+        float home = (1 - s) * (1 - tourHide), top = home * (1 - smoothstep(0, 0.32f, dc));
         float shift = SHIFT * k;
         float lift = -d * shift;
         show(heroLayer, top, lift);
@@ -2454,6 +2466,58 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
 
     // MARK: - Toasts
 
+    // MARK: - Welcome tour (Tour), the first time the home screen opens
+
+    private final Runnable startTour = this::beginTour;
+
+    private void beginTour() {
+        if (!running || hidden || tour.active()) return;
+        tourLayer.setVisibility(VISIBLE);
+        tour.start();
+    }
+
+    private Tour.Host tourHost() {
+        return new Tour.Host() {
+            @Override public Scene scene() { return scene; }
+            @Override public float k() { return k; }
+            @Override public RectF shelf() { return platterRect; }
+            @Override public android.graphics.PointF tower() {
+                if (skyNow == null) return null;
+                android.graphics.PointF p = skyNow.towerMiddle();
+                p.set(p.x * w / 1920f, p.y * h / 1080f);
+                return p;
+            }
+            @Override public void step(int step) {
+                SkyScene.tourWeather = step == Tour.WEATHER ? SkyScene.RAIN : -1;
+                SkyScene.tourMusic = step == Tour.TOWER;
+                fadeTourUi(step == Tour.APPS ? 0 : 1);
+                sky.invalidate();
+                announceForAccessibility(Ui.tr(new String[] {"A sky that follows the clock", "The real weather",
+                        "Someone lives in the tower", "Your apps, no ads", "All set"}[step]));
+            }
+            @Override public void finished() {
+                ui.edit().putBoolean("tourSeen", true).apply();
+                SkyScene.tourWeather = -1;
+                SkyScene.tourMusic = false;
+                fadeTourUi(0);
+                tourLayer.setVisibility(INVISIBLE);
+                sky.invalidate();
+            }
+            @Override public void redraw() { tourLayer.postInvalidate(); }
+        };
+    }
+
+    /** The greeting, picks and shelf fade out (1) so the tour shows the sky alone, or back in (0). */
+    private void fadeTourUi(float to) {
+        if (tourFade != null) tourFade.cancel();
+        tourFade = android.animation.ValueAnimator.ofFloat(tourHide, to).setDuration(600);
+        tourFade.addUpdateListener(a -> {
+            tourHide = (float) a.getAnimatedValue();
+            updateMotion();
+        });
+        tourFade.start();
+    }
+
     void showToast(String text) {
         toasts.add(text);
         announceForAccessibility(text);
@@ -2577,6 +2641,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
 
     boolean onKey(KeyEvent e) {
         wake();
+        if (tour.key(e)) return true;
         int keyCode = e.getKeyCode();
         boolean media = KeyEvent.isMediaSessionKey(keyCode) || keyCode == KeyEvent.KEYCODE_VOLUME_UP
                 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE;

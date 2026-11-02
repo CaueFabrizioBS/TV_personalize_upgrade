@@ -87,6 +87,8 @@ final class SkyScene {
     private final float[] lightLevel = new float[4];
     /** A music app is playing (HomeView and DreamView say so): the tower joins in. */
     static volatile boolean music;
+    static volatile boolean tourMusic;        // the welcome tour's tower card (Tour)
+    static volatile int tourWeather = -1;     // the welcome tour's weather card: RAIN; -1 = the real weather
     private static long musicCheckedAt;
     private static boolean musicForced;
     // The rain: three planes (far, middle, near), each its drops' x and y at time 0.
@@ -123,6 +125,7 @@ final class SkyScene {
      * snow. Without those (an older answer), the code alone.
      */
     static int weatherKind(HomeData.Weather w) {
+        if (tourWeather >= 0) return tourWeather;
         float forced = debugWeather();   // to see it: adb shell setprop debug.freemytv.weather 0..2
         if (forced >= 0) return (int) forced;
         int code = w.code;
@@ -463,6 +466,12 @@ final class SkyScene {
                 | Math.round((color & 0xFF) * f);
     }
 
+    /** The tower's middle, in the 1920x1080 picture (the welcome tour's spotlight). */
+    android.graphics.PointF towerMiddle() {
+        float tw = towerFront != null ? towerFront.getWidth() : 280, th = towerFront != null ? towerFront.getHeight() : 390;
+        return new android.graphics.PointF(towerX + tw / 2, towerY + th / 2);
+    }
+
     /** Music playing, or to see it without: adb shell setprop debug.freemytv.music 1 (read every 2 s). */
     private static boolean musicOn() {
         long now = android.os.SystemClock.uptimeMillis();
@@ -475,7 +484,7 @@ final class SkyScene {
                 musicForced = false;
             }
         }
-        return music || musicForced;
+        return music || musicForced || tourMusic;
     }
 
     /**
