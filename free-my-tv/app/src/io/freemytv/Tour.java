@@ -12,7 +12,6 @@ import android.graphics.RadialGradient;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
-import android.os.SystemClock;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
@@ -61,7 +60,6 @@ final class Tour {
     private ValueAnimator anim;
     private boolean active;
     private int step, focus;   // focus: 0 = Next / Start, 1 = Skip
-    private long cardAt;
 
     Tour(Context c, Host host) {
         context = c;
@@ -82,7 +80,6 @@ final class Tour {
     private void go(int s) {
         step = s;
         focus = 0;
-        cardAt = SystemClock.uptimeMillis();
         host.step(s);
         if (anim != null) anim.cancel();
         anim = ValueAnimator.ofFloat(0, 1).setDuration(450);
@@ -135,7 +132,7 @@ final class Tour {
         if (!active) return;
         float k = host.k();
         makePaints(k);
-        float a = Ui.clamp((SystemClock.uptimeMillis() - cardAt) / 450f);
+        float a = anim == null ? 1 : anim.getAnimatedFraction();   // the animator's own last frame is exactly 1
         a = 1 - (1 - a) * (1 - a);
         if (step == TOWER) spotlight(c, w, h, k);
         if (step == APPS) shelfLight(c, w, h, k);
