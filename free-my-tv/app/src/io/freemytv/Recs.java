@@ -52,7 +52,6 @@ final class Recs {
         boolean detailed;
         boolean fresh;          // a new season or episode of one of your shows (favorites.json): Shows shows it first
         boolean digital;        // a movie just out of theaters on digital (rent, buy or streaming): Movies shows it first
-        String where;           // where it's officially on, e.g. "Rent on Apple TV" (null when TMDB doesn't say)
         boolean allAges;        // rated for all ages in REGION (Brazil's "L", US "G" / "TV-Y"…): kids' fare, left out
         boolean horror;         // TMDB tags it horror or slasher (shows have no Horror genre): out when 27 is excluded
         boolean resume;         // the Continue tab (Trakt): something you're in the middle of, or a show's next episode
@@ -69,7 +68,7 @@ final class Recs {
     private static final int ANIMATION = 16;
     private static final long LIST_EVERY = 6 * 3600_000L;
     /** Bump when what is saved for each title changes (the saved list is discarded and fetched again). */
-    private static final int CACHE_VERSION = 12;
+    private static final int CACHE_VERSION = 13;
     /** Nuvio (a Stremio-style player): with "source": "nuvio" in favorites.json every pick opens its page there. */
     static final String NUVIO = "com.nuvio.tv";
     private static final int MANHA = 0, TARDE = 1, NOITE = 2;
@@ -1104,7 +1103,8 @@ final class Recs {
 
     /**
      * Movies released on digital in your region in the past 45 days (TMDB's release type 4: rent, buy or streaming),
-     * most popular first, up to 8; each says where it's on.
+     * most popular first, up to 8; each says the app it opens in
+     * on this TV (it changes when a streaming app is installed or removed: see sourceStamp).
      */
     private List<Pick> newOnDigital(Set<Integer> excluded, boolean noAnime) {
         List<Pick> out = new ArrayList<>();
@@ -1127,7 +1127,7 @@ final class Recs {
                 if (pick.pkg == null || pick.allAges || (pick.horror && excluded.contains(27))) continue;
                 pick.digital = true;
                 String genre = pick.meta.contains(" · ") ? pick.meta.substring(0, pick.meta.indexOf(" · ")) : pick.meta;
-                pick.meta = Ui.tr("New on digital") + (genre.isEmpty() ? "" : " · " + genre) + (pick.where != null ? " · " + pick.where : "");
+                pick.meta = Ui.tr("New on digital") + (genre.isEmpty() ? "" : " · " + genre) + " · " + Ui.trf("On {service}", "service", SERVICE_NAME.get(pick.app));
                 out.add(pick);
             }
         } catch (Exception e) {
@@ -1402,7 +1402,6 @@ final class Recs {
         JSONObject wp = o.optJSONObject("watch/providers");
         JSONObject br = wp == null ? null : wp.optJSONObject("results") == null ? null : wp.optJSONObject("results").optJSONObject(REGION);
         JSONArray flat = br == null ? null : br.optJSONArray("flatrate");
-        p.where = where(br);
         // Nuvio mode: the title opens in the first service on the TV that streams it here (hide_services leaves out the
         // ones the TV ships without a subscription): Netflix on the title's page when Wikidata knows its Netflix number,
         // the others on their app's home (or the title's page with a Watchmode key). None of them: Nuvio.
@@ -1483,18 +1482,6 @@ final class Recs {
             AppLog.w("wikidata: " + e.getMessage());
             return null;
         }
-    }
-
-    /** Where TMDB says the title is officially on in your region: streaming first, then to rent, then to buy. */
-    private static String where(JSONObject br) {
-        if (br == null) return null;
-        String[][] ways = {{"flatrate", "On {service}"}, {"rent", "Rent on {service}"}, {"buy", "Buy on {service}"}};
-        for (String[] w : ways) {
-            JSONArray a = br.optJSONArray(w[0]);
-            String name = a == null || a.length() == 0 ? "" : a.optJSONObject(0).optString("provider_name");
-            if (!name.isEmpty()) return Ui.trf(w[1], "service", name.replace("Google Play Movies", "Google Play"));
-        }
-        return null;
     }
 
     /**
