@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- TV_personalize_upgrade ----
+# Personal working notes and drafts stay on this computer (they hold the TV's address and family details)
+/HISTORICO-DA-TV.md
+/LEIA-ME.md
+/arquivo/
+/imagens/
+/*.jpg
+/*.png

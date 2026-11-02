@@ -2,7 +2,7 @@
 
 A Google TV's performance, version by version. A TCL Google TV (Android 12, 2 GB of RAM) went from the factory home
 screen to a custom, ad-free one with an animated, illustrated sky
-([the app is here](https://github.com/CaueFabrizioBS/free-my-tv)). Was each step faster or slower? This project
+([the app is here](../free-my-tv)). Was each step faster or slower? This project
 puts every version through the same test on the TV, keeps a log of how the home screen runs through the day, and
 shows it all in a notebook and a Streamlit dashboard.
 

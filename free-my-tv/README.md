@@ -19,7 +19,7 @@ Open source. Built with Claude Code. One button to undo.
 > **This is a fork:** [simbasjungles/free-my-tv](https://github.com/simbasjungles/free-my-tv) with a living,
 > illustrated sky and a few extras, made for a TCL Google TV (Android 12). Everything below the fork's section is
 > the original README and still applies. The data behind these changes (apps, memory, frame times) is analyzed in
-> [tv-cleaner-analysis](https://github.com/CaueFabrizioBS/tv-cleaner-analysis).
+> [tv-cleaner-analysis](../tv-cleaner-analysis).
 
 ## What this fork adds
 
