@@ -90,7 +90,10 @@ streamlit run app.py
 
 ## Install the home screen on your TV
 
-A step-by-step guide in Portuguese is in [MANUAL-DE-INSTALACAO.txt](MANUAL-DE-INSTALACAO.txt).
+A step-by-step guide in Portuguese, for people who aren't technical, is in [MANUAL-DE-INSTALACAO.txt](MANUAL-DE-INSTALACAO.txt). On Google TV and Android TV it needs only the remote and the free Downloader app. Below is the way with a computer.
+
+The APK runs only on Google TV and Android TV. **Samsung (Tizen) and LG (webOS) can't install it:** they can run
+upstream's web version, as an app, without the sky, the tower or the performance log (see the manual; not tested here).
 
 You need a Google TV or Android TV (Android 8 or newer), a computer on the same Wi-Fi and
 [adb](https://developer.android.com/tools/releases/platform-tools).
@@ -107,8 +110,7 @@ You need a Google TV or Android TV (Android 8 or newer), a computer on the same 
 
 The ready APK has the sky, the weather, the tower and the music scenes, and takes your city from the TV's time zone.
 It has no movie picks, since those need a personal [TMDB](https://www.themoviedb.org/settings/api) key: to get them,
-build it yourself with your key ([free-my-tv/README.md](free-my-tv/README.md#the-manual-way)). On TCL TVs, also run
-`adb shell "appops set io.freemytv AUTO_START allow"`.
+build it yourself with your key ([free-my-tv/README.md](free-my-tv/README.md#the-manual-way)).
 
 ## Test your own TV
 
@@ -116,6 +118,30 @@ build it yourself with your key ([free-my-tv/README.md](free-my-tv/README.md#the
 python collector/benchmark.py 192.168.1.50 "V0 my factory home screen"
 python collector/build_datasets.py
 ```
+
+## Performance from other TVs
+
+Optional and off by default, with no sign-up: *Free My TV → Home Settings → Share performance*. Once a day, the TV sends
+one anonymous line to a Google Form: a random id, TV model, Android version, total RAM, app version, frames, share of
+late frames, frame times, free memory, the home screen's memory and CPU, and the chip's thermal state. Never which apps
+are open, what's watched, an account or a city. Each line sent is also kept on the TV, in `perf_shared.csv`, so anyone
+can check it. The code is in `PerfShare.java`.
+
+## Tested on
+
+| Device | How | Result |
+| --- | --- | --- |
+| TCL Google TV (Android 12) | Real TV, daily use | Everything works |
+| Google TV (Android 14) | Official emulator | Install, activation, sky, tour, restart and going back to *Original* all work |
+| Port 5555 closed, as on Chromecast with Google TV (Android 14) | Same emulator, port moved | The home screen keeps running; switching modes stops with a message pointing to the manual |
+| Chromecast with Google TV, Google TV Streamer | Not tested on the real devices | Expected to work; may need a computer once |
+
+The emulator shows that the software runs, not how fast a real device is.
+
+Samsung and LG TVs can't install the launcher from their browser, so [`docs/teste/`](docs/teste/index.html) measures them
+without installing anything: the TV's browser draws one fixed sky for a minute, and the person chooses whether to send the
+result. Its lines start with format `2` (the app's start with `1`) and shouldn't be compared with the app's: they measure
+the browser, not the launcher.
 
 ## Tools
 

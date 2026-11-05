@@ -1,6 +1,6 @@
 """Benchmark the TV's current home screen, the same way every time, so versions can be compared.
 
-    python collector/benchmark.py 192.168.1.50 "V5 current"
+    python collector/benchmark.py 192.168.1.50 "V5 current" [--enter-profiles]
 
 It restarts the TV (so every version starts from the same state) and measures:
     boot_s         from the restart to Android saying it finished booting
@@ -137,7 +137,9 @@ def frames(serial, pkg, seconds=120):
     }, hist
 
 
-PROFILES = {"Netflix", "Nuvio"}
+# Netflix and Nuvio stop at "Who's watching?". Only with --enter-profiles does the test press OK there, which leaves the
+# app on the first profile: it can hide the "Continue watching" of whoever uses another one.
+PROFILES = {"Netflix", "Nuvio"} if "--enter-profiles" in sys.argv else set()
 APPS = {"Netflix": "com.netflix.ninja", "Nuvio": "com.nuvio.tv", "Spotify": "com.spotify.tv.android"}
 
 
@@ -150,7 +152,7 @@ def app_test(serial, name, pkg):
     shell(serial, f"am force-stop {pkg}")
     time.sleep(3)
     launch = number(r"TotalTime: (\d+)", shell(serial, f"am start -W -n {activity}"))
-    if name in PROFILES:   # "Who's watching?": the first profile, the default one
+    if name in PROFILES:   # "Who's watching?": the first profile
         time.sleep(8)
         shell(serial, "input keyevent KEYCODE_DPAD_CENTER")
     time.sleep(20)

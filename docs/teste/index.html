@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste da TV</title>
+<!--
+  Performance test for TVs that can't install the launcher (Samsung, LG): opened in the TV's browser, nothing installed.
+  It draws one fixed sky for a minute and times the frames, so it measures this TV's browser, not the launcher: its lines
+  in the Sheet start with format 2 and don't mix with the app's format 1. Nothing leaves until the person presses Enviar.
+  ES5 and one file on purpose: TV browsers can be years old. Add #rapido to the address for an 8-second run.
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1a33; color: #f4f7fb; overflow: hidden;
+    font-family: "Samsung One", "LG Smart", Roboto, Arial, Helvetica, sans-serif; }
+  canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .panel { position: absolute; left: 50%; top: 50%; width: 62vw; margin-left: -31vw; box-sizing: border-box;
+    transform: translateY(-50%); -webkit-transform: translateY(-50%);
+    padding: 3vw 3.5vw; background: rgba(8, 18, 38, .88); border-radius: 1.5vw; font-size: 1.9vw; line-height: 1.4; }
+  h1 { margin: 0 0 1.2vw; font-size: 3.2vw; line-height: 1.15; font-weight: 700; }
+  p { margin: 0 0 1.2vw; }
+  .soft { color: #b9c7dc; font-size: 1.55vw; }
+  .row { margin-top: 2vw; }
+  button { font: inherit; font-weight: 700; color: #f4f7fb; background: #24395f; border: .25vw solid #24395f;
+    border-radius: .8vw; padding: .9vw 2.4vw; margin-right: 1.2vw; cursor: pointer; }
+  button:focus, button:hover { outline: none; background: #ffd23c; border-color: #fff; color: #0b1a33; }
+  .big { font-size: 4.2vw; line-height: 1.05; font-weight: 700; color: #ffd23c; margin-bottom: .4vw; }
+  code { display: block; margin-top: .6vw; font: 1.15vw/1.35 Consolas, Menlo, monospace; color: #b9c7dc; word-break: break-all; }
+  #clock { position: absolute; left: 3vw; right: 3vw; bottom: 3vw; font-size: 1.8vw; text-shadow: 0 .1vw .4vw #000; }
+  #track { height: .7vw; margin-top: .7vw; background: rgba(255, 255, 255, .25); border-radius: .35vw; }
+  #fill { height: 100%; width: 0; background: #ffd23c; border-radius: .35vw; }
+  .off { display: none; }
+  @media (max-width: 800px) {
+    .panel { width: auto; left: 16px; right: 16px; margin: 0; padding: 20px; font-size: 16px; border-radius: 12px; }
+    h1 { font-size: 24px; margin-bottom: 10px; }
+    p { margin-bottom: 10px; }
+    .soft { font-size: 14px; }
+    .big { font-size: 40px; }
+    .row { margin-top: 14px; }
+    button { padding: 10px 14px; margin: 0 8px 8px 0; border-width: 2px; border-radius: 8px; }
+    code { font-size: 11px; }
+    #clock { left: 16px; right: 16px; bottom: 16px; font-size: 14px; }
+    #track { height: 6px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="sky" width="1280" height="720"></canvas>
+
+<div id="start" class="panel">
+  <h1>Teste da sua TV</h1>
+  <p>Um céu animado roda por 1 minuto para medir como a TV se sai. Nada é instalado.</p>
+  <p class="soft">Não mexa no controle durante o teste. No final, você vê o resultado e decide se quer enviá-lo.</p>
+  <div class="row"><button id="go">Começar o teste</button></div>
+</div>
+
+<div id="clock" class="off">
+  <span id="left"></span>
+  <div id="track"><div id="fill"></div></div>
+</div>
+
+<div id="done" class="panel off">
+  <div class="big" id="fps"></div>
+  <h1 id="verdict"></h1>
+  <p class="soft">Isso mostra como o navegador desta TV roda a animação. O resultado de um app instalado pode ser diferente.</p>
+  <div id="ask">
+    <p>Quer ajudar o projeto enviando este resumo anônimo?</p>
+    <p class="soft">Vai só a linha abaixo: um número aleatório, marca, sistema, navegador, tela, processador, memória e
+      os tempos do teste. Nunca o que você assiste, seus apps, sua conta ou sua cidade.
+      <code id="line"></code></p>
+    <div class="row"><button id="no">Não enviar</button><button id="yes">Enviar</button></div>
+  </div>
+  <p id="after" class="off"></p>
+</div>
+
+<iframe name="sink" id="sink" title="" class="off"></iframe>
+<form id="form" class="off" method="post" target="sink"
+      action="https://docs.google.com/forms/d/e/1FAIpQLSfkf2712vT-N6GIJKehQ7A898zRfqi8OPAHX_4wxt3AXriCpQ/formResponse">
+  <input type="hidden" id="field" name="entry.548541031">
+</form>
+
+<script>
+var VERSION = '1';
+var QUICK = location.hash === '#rapido';
+var WARMUP_MS = QUICK ? 1000 : 3000, RUN_MS = QUICK ? 8000 : 60000;
+var W = 1280, H = 720;
+var canvas = document.getElementById('sky'), ctx = canvas.getContext && canvas.getContext('2d');
+var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+
+function byId(id) { return document.getElementById(id); }
+function show(id, on) { byId(id).className = byId(id).className.replace(/\s*off/g, '') + (on ? '' : ' off'); }
+
+/** Only the system's family and version: the TV's model isn't in its browser's address card anyway. */
+function readAgent(ua) {
+  var m, out = { brand: 'outro', system: '', engine: '' };
+  if ((m = /Tizen\s*([\d.]+)?/i.exec(ua))) { out.brand = 'Samsung'; out.system = 'Tizen ' + (m[1] || ''); }
+  else if ((m = /Web0S|webOS/i.exec(ua))) { out.brand = 'LG'; out.system = 'webOS'; }
+  else if ((m = /Android\s*([\d.]+)?/i.exec(ua))) { out.brand = 'Android'; out.system = 'Android ' + (m[1] || ''); }
+  if ((m = /Chrom(?:e|ium)\/(\d+)/.exec(ua))) out.engine = 'Chrome ' + m[1];
+  else if ((m = /AppleWebKit\/(\d+)/.exec(ua))) out.engine = 'WebKit ' + m[1];
+  return out;
+}
+
+/** Tells two tests of one TV from two TVs. Random, kept only in this browser. */
+function testerId() {
+  var id = '';
+  try { id = localStorage.getItem('tv_test_id') || ''; } catch (e) {}
+  if (!id) {
+    id = Math.random().toString(36).slice(2, 10);
+    try { localStorage.setItem('tv_test_id', id); } catch (e) {}
+  }
+  return id;
+}
+
+/* The scene: the same picture and the same work on every TV, so results can be compared. No clock, no weather. */
+var stars = [], clouds = [], sprite, seed = 7;
+function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+
+function makeScene() {
+  var i, c, g, k;
+  for (i = 0; i < 140; i++) stars.push({ x: rnd() * W, y: rnd() * H * 0.62, s: 1 + rnd() * 1.6, p: rnd() * 6.28 });
+  sprite = document.createElement('canvas');
+  sprite.width = 256; sprite.height = 128;
+  c = sprite.getContext('2d');
+  for (i = 0; i < 16; i++) {
+    var x = 40 + rnd() * 176, y = 58 + rnd() * 30, r = 18 + rnd() * 26;
+    g = c.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(255,255,255,.55)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g;
+    c.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  for (k = 0; k < 9; k++) clouds.push({ x: rnd() * W, y: 40 + rnd() * 340, w: 260 + rnd() * 340, v: 8 + rnd() * 22, a: 0.35 + rnd() * 0.5 });
+}
+
+function drawScene(now) {
+  var t = now / 1000, i, g;
+  g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0b1a33'); g.addColorStop(0.6, '#274a7c'); g.addColorStop(0.86, '#d9825b'); g.addColorStop(1, '#f6c177');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff';
+  for (i = 0; i < stars.length; i++) {
+    ctx.globalAlpha = 0.45 + 0.45 * Math.sin(t * 1.7 + stars[i].p);
+    ctx.fillRect(stars[i].x, stars[i].y, stars[i].s, stars[i].s);
+  }
+  g = ctx.createRadialGradient(980, 610, 8, 980, 610, 130);
+  g.addColorStop(0, 'rgba(255,240,200,1)'); g.addColorStop(0.2, 'rgba(255,214,140,.8)'); g.addColorStop(1, 'rgba(255,190,110,0)');
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = g;
+  ctx.fillRect(850, 480, 260, 240);
+  for (i = 0; i < clouds.length; i++) {
+    var cl = clouds[i], span = W + cl.w, x = (cl.x + t * cl.v) % span - cl.w;
+    ctx.globalAlpha = cl.a;
+    ctx.drawImage(sprite, x, cl.y, cl.w, cl.w / 2);
+  }
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#17233a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (i = 0; i < 7; i++) {
+    var bx = (t * 34 + i * 180) % (W + 80) - 40, by = 300 + 34 * Math.sin(t * 0.5 + i), f = 7 * Math.sin(t * 7 + i);
+    ctx.moveTo(bx - 12, by - f); ctx.lineTo(bx, by); ctx.lineTo(bx + 12, by - f);
+  }
+  ctx.stroke();
+}
+
+/* The test: every gap between frames goes into a histogram of whole milliseconds. */
+var LATE_MS = 25;   // over 1.5 frames of a 60 Hz screen
+var hist, frames, late, began, last, spent, measuring, running, result;
+
+function percentile(h, n, share) {
+  var seen = 0, ms;
+  for (ms = 0; ms < h.length; ms++) {
+    seen += h[ms];
+    if (seen > 0 && seen >= n * share) return ms;
+  }
+  return 0;
+}
+
+function summarize() {
+  var a = readAgent(navigator.userAgent), seconds = spent / 1000, fps = frames / seconds;
+  result = { fps: fps, line: [
+    2, testerId(), a.brand, a.system, a.engine,
+    screen.width, screen.height, window.devicePixelRatio || 1,
+    navigator.hardwareConcurrency || 0, navigator.deviceMemory || 0, VERSION,
+    Math.round(seconds), frames, fps.toFixed(1), (100 * late / frames).toFixed(1),
+    percentile(hist, frames, 0.5), percentile(hist, frames, 0.95)
+  ].join(',') };
+}
+
+function start() {
+  hist = []; for (var i = 0; i < 1000; i++) hist.push(0);
+  frames = 0; late = 0; spent = 0; last = 0; measuring = false; running = true;
+  began = null;
+  show('start', false); show('done', false); show('clock', true);
+  raf(tick);
+}
+
+function tick(now) {
+  if (!running) return;
+  if (began === null) began = now;
+  drawScene(now);
+  var age = now - began;
+  if (!measuring && age >= WARMUP_MS) { measuring = true; last = now; }
+  else if (measuring) {
+    var gap = now - last;
+    last = now;
+    hist[Math.min(999, Math.round(gap))]++;
+    frames++;
+    spent += gap;
+    if (gap > LATE_MS) late++;
+  }
+  var left = Math.max(0, WARMUP_MS + RUN_MS - age);
+  byId('left').innerHTML = 'Testando... faltam ' + Math.ceil(left / 1000) + ' segundos';
+  byId('fill').style.width = (100 - 100 * left / (WARMUP_MS + RUN_MS)) + '%';
+  if (left > 0) raf(tick);
+  else finish();
+}
+
+function finish() {
+  running = false;
+  show('clock', false);
+  summarize();
+  byId('fps').innerHTML = Math.round(result.fps) + (Math.round(result.fps) === 1 ? ' quadro' : ' quadros') + ' por segundo';
+  byId('verdict').innerHTML = result.fps >= 50 ? 'Muito fluida' : result.fps >= 30 ? 'Boa' : result.fps >= 20 ? 'Aceitável' : 'Travando bastante';
+  byId('line').innerHTML = result.line;
+  show('ask', true); show('after', false); show('done', true);
+  byId('no').focus();
+}
+
+/* A page in the background gets no frames: those gaps say nothing about the TV, so the test begins again. */
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden && running) { running = false; show('clock', false); show('start', true); byId('go').focus(); }
+});
+
+function closeWith(text) {
+  byId('after').innerHTML = text;
+  show('ask', false); show('after', true);
+}
+
+function send() {
+  var answered = false;
+  byId('field').value = result.line;
+  byId('sink').onload = function () { answered = true; closeWith('Enviado. Obrigado! Já pode fechar esta página.'); };
+  closeWith('Enviando...');
+  byId('form').submit();
+  setTimeout(function () {
+    if (!answered) closeWith('Não deu para confirmar o envio. Confira a internet da TV e faça o teste de novo, se quiser.');
+  }, 20000);
+}
+
+byId('go').onclick = start;
+byId('no').onclick = function () { closeWith('Nada foi enviado. Já pode fechar esta página.'); };
+byId('yes').onclick = send;
+
+/* Left and right move between the two buttons, whatever the TV's browser does with focus by itself. */
+document.addEventListener('keydown', function (e) {
+  var k = e.keyCode, on = document.activeElement;
+  if ((k === 37 || k === 39) && (on === byId('no') || on === byId('yes'))) {
+    (k === 39 ? byId('yes') : byId('no')).focus();
+    e.preventDefault();
+  }
+});
+
+if (!ctx || !raf) {
+  byId('go').parentNode.innerHTML = '<p>O navegador desta TV é antigo demais para este teste.</p>';
+} else {
+  makeScene();
+  drawScene(0);
+  byId('go').focus();
+}
+</script>
+</body>
+</html>

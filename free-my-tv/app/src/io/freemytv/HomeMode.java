@@ -222,7 +222,19 @@ final class HomeMode {
 
     /** Asks the main process to switch (the settings screen calls this). */
     static void request(Context c, String mode) {
-        ModeJob.schedule(c, ModeJob.APPLY, mode, 0);
+        if (!RemoteKeys.TCL || !FREE.equals(mode)) {
+            ModeJob.schedule(c, ModeJob.APPLY, mode, 0);
+            return;
+        }
+        // TCL holds background jobs back, and the switch is one: allowed from here, with the screen open and no computer.
+        new Thread(() -> {
+            try (Adb adb = Adb.connect(c, 120_000, null)) {
+                adb.shell("appops set " + PKG + " AUTO_START allow || appops set " + PKG + " APP_AUTO_START allow");
+            } catch (IOException e) {
+                AppLog.w("auto start: " + e.getMessage());
+            }
+            ModeJob.schedule(c, ModeJob.APPLY, mode, 0);
+        }, "free-my-tv-allow").start();
     }
 
     /** Our home screen crashed 3 times in 5 minutes: give the home screen back to the TV's own (asked by :home). */

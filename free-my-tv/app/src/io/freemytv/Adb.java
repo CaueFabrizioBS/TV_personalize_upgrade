@@ -3,6 +3,7 @@ package io.freemytv;
 import android.content.Context;
 import android.os.Build;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.Base64;
 
 import java.io.ByteArrayOutputStream;
@@ -75,7 +76,10 @@ final class Adb implements Closeable {
             s.connect(new InetSocketAddress("127.0.0.1", 5555), 3000);
         } catch (IOException e) {
             s.close();
-            throw new IOException(Ui.tr("debugging is off on the TV (port 5555 closed)"));
+            // Debugging on with the port closed is Chromecast with Google TV and others on Android 14: only a computer opens it.
+            boolean on = Settings.Global.getInt(c.getContentResolver(), Settings.Global.ADB_ENABLED, 0) == 1;
+            throw new IOException(Ui.tr(on ? "this device needs a computer: see Plan B in the manual"
+                    : "turn on USB debugging in Developer options"));
         }
         Adb adb;
         try {

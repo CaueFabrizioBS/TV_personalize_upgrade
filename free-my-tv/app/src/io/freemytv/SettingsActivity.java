@@ -499,13 +499,13 @@ public class SettingsActivity extends Activity {
 
         /** Home screen picks: status, and the credit TMDB asks for. */
         private float drawRecs(Canvas c, float y) {
+            if (!hasKey) return y - 26 * k;   // the public build has no picks: nothing to report, no TMDB to credit
             float x = LIST_X * k + 30 * k;
             c.drawText(Ui.tr("RECOMMENDATIONS"), x, y, header);
             String line;
             String error = recs.optString("error");
             int count = recs.optInt("count");
-            if (!hasKey) line = Ui.tr("No TMDB key: see the README (config.properties).");
-            else if (error.equals(Recs.NO_KNOWN_APPS)) line = Ui.tr("None of the TV's streaming apps can give picks.");
+            if (error.equals(Recs.NO_KNOWN_APPS)) line = Ui.tr("None of the TV's streaming apps can give picks.");
             else if (error.equals(Recs.NO_APPS)) line = Ui.trf("TMDB has none of the TV's apps for tmdb_region={region}.", "region", Recs.REGION);
             else if (!error.isEmpty()) line = Ui.trf("Error: {error}.", "error", error);
             else if (count > 0) line = Ui.trf("On · {n} titles from the TV's apps, 3 new ones every hour.", "n", count);
@@ -708,7 +708,7 @@ public class SettingsActivity extends Activity {
         /** Home Settings: language, temperature, theme, my photos, sounds, watch from the screensaver, weather, city, forecast,
          *  now playing, quotes, then one row per coin. */
         private static final int PHOTOS_ROW = 3, SAVER_ROW = 5, WEATHER_ROW = 6, CITY_ROW = 7, FORECAST_ROW = 8, PLAYING_ROW = 9,
-                QUOTES_ROW = 10, COIN_ROWS = 11;
+                QUOTES_ROW = 10, SHARE_ROW = 11, COIN_ROWS = 12;
         /** Home Settings rows on screen at once (what fits above the hints at 1080p); a longer list scrolls. */
         private static final int SETTINGS_VISIBLE = 10;
 
@@ -729,6 +729,7 @@ public class SettingsActivity extends Activity {
             l.add(Ui.tr("Forecast"));
             l.add(Ui.tr("Now Playing widget"));
             l.add(Ui.tr("Quotes widget"));
+            l.add(Ui.tr("Share performance"));
             l.add("Bitcoin");
             l.add("Ethereum");
             l.add("Solana");
@@ -755,6 +756,7 @@ public class SettingsActivity extends Activity {
             v[FORECAST_ROW] = Prefs.forecast().equals("days") ? Ui.tr("Next days") : Ui.tr("Next hours");
             v[PLAYING_ROW] = onOff(Prefs.nowPlaying());
             v[QUOTES_ROW] = onOff(Prefs.quotes());
+            v[SHARE_ROW] = onOff(Prefs.sharePerf());
             // No quotes widget, nowhere to show prices: the coins read as off (and stay locked) until it is back on.
             for (int i = COIN_ROWS; i < v.length; i++) v[i] = onOff(Prefs.quotes() && Prefs.coin(i - COIN_ROWS));
             return v;
@@ -1033,12 +1035,35 @@ public class SettingsActivity extends Activity {
                     HomeMode.nowPlayingAccess(getContext());
                     break;
                 case QUOTES_ROW: Prefs.setQuotes(!Prefs.quotes()); break;
+                case SHARE_ROW:
+                    if (Prefs.sharePerf()) {
+                        Prefs.setSharePerf(false);
+                        invalidate();
+                    } else {
+                        askShare();
+                    }
+                    return;
                 default:
                     if (!Prefs.quotes()) return;
                     Prefs.setCoin(row - COIN_ROWS, !Prefs.coin(row - COIN_ROWS));
                     break;
             }
             HomeData.get(getContext()).settingsChanged();
+        }
+
+        /** Turning on Share performance: says what leaves the TV, and a stray OK keeps it off. */
+        private void askShare() {
+            AlertDialog dialog = new AlertDialog.Builder(activity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle(Ui.tr("Share performance?"))
+                    .setMessage(Ui.tr("Once a day, this TV sends the project an anonymous summary of how the home screen runs: TV model, Android version, RAM, smoothness, memory and CPU use. Never what you watch, which apps you open, your account or your city. No sign-up, and you can turn it off here at any time."))
+                    .setPositiveButton(Ui.tr("Share"), (d, which) -> {
+                        Prefs.setSharePerf(true);
+                        invalidate();
+                        spoken.focusMoved();
+                    })
+                    .setNegativeButton(Ui.tr("Cancel"), null)
+                    .show();
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus();
         }
 
         private void askCity() {

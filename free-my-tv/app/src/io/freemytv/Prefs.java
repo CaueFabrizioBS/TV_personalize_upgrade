@@ -170,6 +170,18 @@ final class Prefs {
         version++;
     }
 
+    static boolean sharePerf() { return sp().getBoolean("sharePerf", false); }
+    /** On: a new random id, and only what's logged from now on counts. Off: the id is forgotten. */
+    static void setSharePerf(boolean on) {
+        sp().edit().putBoolean("sharePerf", on)
+                .putString("shareId", on ? java.util.UUID.randomUUID().toString() : null)
+                .putLong("shareSentAt", on ? System.currentTimeMillis() : 0).apply();
+        version++;
+    }
+    static String shareId() { return sp().getString("shareId", ""); }
+    static long shareSentAt() { return sp().getLong("shareSentAt", 0); }
+    static void setShareSentAt(long at) { sp().edit().putLong("shareSentAt", at).apply(); }
+
     static boolean quotes() { return sp().getBoolean("quotes", Config.SHOW_CRYPTO); }
     static void setQuotes(boolean on) { put("quotes", on); }
 

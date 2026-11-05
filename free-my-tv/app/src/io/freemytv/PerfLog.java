@@ -27,7 +27,8 @@ import java.util.Locale;
  * A quiet performance log for tv-cleaner-analysis: the home screen's frame times, the RAM (the TV's free and the home
  * screen's own, GPU included), its CPU, the chip's temperature state and the app on screen, one line every 15 minutes
  * while the TV is on, in Android/data/io.freemytv/files/perf.csv (the PC reads it with adb pull, whenever it's on).
- * Nothing on screen, nothing sent anywhere; the file stays under 2 MB.
+ * The app on screen only with log_apps=true (this project's own TV; off in the public APK). Nothing on screen, and
+ * nothing leaves the TV unless Home Settings → Share performance is on (PerfShare); the file stays under 2 MB.
  */
 final class PerfLog {
     private PerfLog() {}
@@ -66,6 +67,7 @@ final class PerfLog {
 
     private static void sample() {
         handler.postDelayed(PerfLog::sample, EVERY_MS);
+        long began = SystemClock.elapsedRealtime();
         long now = System.currentTimeMillis();
         int frames = 0, janky = 0;
         StringBuilder h = new StringBuilder();
@@ -97,7 +99,7 @@ final class PerfLog {
         int thermal = Build.VERSION.SDK_INT >= 29 ? power.getCurrentThermalStatus() : -1;
         String line = String.format(Locale.US, "%s,%s,%s,%s,%d,%d,%d,%.1f,%d,%d,%d,%s%n",
                 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(new Date(now)),
-                SLOT[HomeData.skySlot(now)], on ? "yes" : "no", foreground(since, now),
+                SLOT[HomeData.skySlot(now)], on ? "yes" : "no", Config.LOG_APPS ? foreground(since, now) : "",
                 mem.availMem / 1_048_576, own.getTotalPss() / 1024,
                 graphics == null ? 0 : Integer.parseInt(graphics) / 1024, cpuPct, thermal, frames, janky, h);
         since = now;
@@ -112,6 +114,7 @@ final class PerfLog {
                 if (fresh) out.write(HEADER + "\n");
                 out.write(line);
             }
+            PerfShare.maybeSend(app, f, SystemClock.elapsedRealtime() - began);
         } catch (IOException | RuntimeException e) {
             AppLog.w("perf log: " + e.getMessage());
         }
